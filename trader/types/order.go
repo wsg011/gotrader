@@ -34,7 +34,7 @@ func (order *Order) IsOver() bool {
 		order.Status == constant.OrderClosed
 }
 
-func (order *Order) UpdateByTradeEvent(trade *TradeEvent) (float64, float64) {
+func (order *Order) UpdateByTradeEvent(trade *Trade) (float64, float64) {
 	executedQty := float64(0)
 	if order.ExecutedQty != "" && order.ExecutedQty != "0" {
 		executedQty, _ = strconv.ParseFloat(order.ExecutedQty, 64)

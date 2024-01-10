@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	RestUrl = "https://www.okex.com"
+	RestUrl  = "https://www.okex.com"
+	PubWsUrl = "wss://ws.okx.com:8443/ws/v5/public"
 )
 
 const (
@@ -50,7 +51,7 @@ func OkInstId2Symbol(instId string) string {
 	if len(tmp) == 2 {
 		return fmt.Sprintf("%s_%s", tmp[0], tmp[1])
 	} else if len(tmp) == 3 {
-		return fmt.Sprintf("%s_%s", tmp[0], tmp[1])
+		return fmt.Sprintf("%s_%s_SWAP", tmp[0], tmp[1])
 	}
 	panic("bad instId:" + instId)
 }

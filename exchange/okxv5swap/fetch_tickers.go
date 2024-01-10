@@ -38,7 +38,7 @@ type Ticker struct {
 	SodUtc8   string `json:"sodUtc8"`
 }
 
-func (client *RestClient) FetchTickers() ([]*types.BookTickerEvent, error) {
+func (client *RestClient) FetchTickers() ([]*types.BookTicker, error) {
 	queryDict := map[string]interface{}{}
 	queryDict["instType"] = "SWAP"
 	payload := utils.UrlEncodeParams(queryDict)
@@ -75,8 +75,8 @@ func (client *RestClient) FetchTickers() ([]*types.BookTickerEvent, error) {
 	return result, nil
 }
 
-func tickersTransform(response *TickerRsp) ([]*types.BookTickerEvent, error) {
-	result := make([]*types.BookTickerEvent, 0, len(response.Data))
+func tickersTransform(response *TickerRsp) ([]*types.BookTicker, error) {
+	result := make([]*types.BookTicker, 0, len(response.Data))
 	for _, ticker := range response.Data {
 		symbol := OkInstId2Symbol(ticker.InstID)
 		ex := constant.OkxV5Future
@@ -85,7 +85,7 @@ func tickersTransform(response *TickerRsp) ([]*types.BookTickerEvent, error) {
 		askSize, _ := strconv.ParseFloat(ticker.AskSz, 64)
 		bidSize, _ := strconv.ParseFloat(ticker.BidSz, 64)
 		exchangeTs, _ := strconv.ParseInt(ticker.Ts, 10, 64)
-		bookTicker := &types.BookTickerEvent{
+		bookTicker := &types.BookTicker{
 			Symbol:     symbol,
 			Exchange:   ex,
 			AskPrice:   askPrice,

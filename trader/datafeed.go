@@ -1,23 +1,39 @@
 package trader
 
+import (
+	"fmt"
+	"gotrader/event"
+	"gotrader/trader/constant"
+)
+
 type DataFeed struct {
-	PublicDataChan  chan MarketDataInterface // 公开市场数据通道
-	PrivateDataChan chan MarketDataInterface // 私有市场数据通道
+	eventEngine *event.EventEngine
+	exchanges   map[constant.ExchangeType]Exchange
 }
 
-func NewDataFeed() *DataFeed {
+func NewDataFeed(eventEngine *event.EventEngine) *DataFeed {
 	return &DataFeed{
-		PublicDataChan:  make(chan MarketDataInterface, 100),
-		PrivateDataChan: make(chan MarketDataInterface, 100),
+		eventEngine: eventEngine,
+		exchanges:   make(map[constant.ExchangeType]Exchange),
 	}
 }
 
-// 接收数据并根据类型分发到相应通道的方法
-func (feed *DataFeed) ReceiveData(data MarketDataInterface) {
-	switch data.(type) {
-	case *BookTicker, *OrderBook:
-		feed.PublicDataChan <- data
-	case *Trade:
-		feed.PrivateDataChan <- data
+// ReceiveData 接收数据并推送到EventEngine
+func (feed *DataFeed) ReceiveData(data interface{}) {
+	feed.eventEngine.Push("Data", data)
+}
+
+// AddExchange 添加交易所到数据源
+func (feed *DataFeed) AddExchange(exchangeType constant.ExchangeType, exchange Exchange) {
+	feed.exchanges[exchangeType] = exchange
+}
+
+// Subscribe 订阅交易所行情
+func (feed *DataFeed) Subscribe(exchangeType constant.ExchangeType, params []map[string]string) error {
+	exchange, exists := feed.exchanges[exchangeType]
+	if !exists {
+		return fmt.Errorf("exchange type %v not found", exchangeType)
 	}
+
+	return exchange.Subscribe(params)
 }

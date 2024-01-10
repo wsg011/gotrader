@@ -6,7 +6,7 @@ import (
 	"hash/fnv"
 )
 
-type BookTickerEvent struct {
+type BookTicker struct {
 	Symbol     string
 	Exchange   constant.ExchangeType
 	AskPrice   float64
@@ -18,7 +18,7 @@ type BookTickerEvent struct {
 	TraceId    string
 }
 
-func (e *BookTickerEvent) Hash() uint32 {
+func (e *BookTicker) Hash() uint32 {
 	h := fnv.New32a()
 	s := fmt.Sprintf("%f%f%f%f%d", e.AskPrice, e.AskQty, e.BidPrice, e.BidQty, e.ExchangeTs)
 	h.Write([]byte(s))
@@ -30,7 +30,7 @@ type OrderBookItem struct {
 	Qty   float64
 }
 
-type OrderBookEvent struct {
+type OrderBook struct {
 	Symbol     string
 	Exchange   constant.ExchangeType
 	Asks       []OrderBookItem
@@ -40,7 +40,7 @@ type OrderBookEvent struct {
 	TraceId    string
 }
 
-type TradeEvent struct {
+type Trade struct {
 	Symbol       string
 	ClientID     string
 	Exchange     constant.ExchangeType

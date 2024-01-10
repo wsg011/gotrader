@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gotrader/trader"
+	"gotrader/trader/types"
 )
 
 type MockStrategy struct {
@@ -17,7 +17,11 @@ func NewStrategy() *MockStrategy {
 	}
 }
 
-func (ms MockStrategy) OnOrderBook(data trader.OrderBook) {
+func (ms *MockStrategy) GetName() string {
+	return "MockStrategy"
+}
+
+func (ms MockStrategy) OnOrderBook(data *types.OrderBook) {
 	// 测试策略逻辑，例如打印数据
 	fmt.Println("Strategy OrderBook data:", data)
 
@@ -25,7 +29,7 @@ func (ms MockStrategy) OnOrderBook(data trader.OrderBook) {
 	ms.pricingChan <- struct{}{}
 }
 
-func (ms MockStrategy) OnBookTicker(data trader.BookTicker) {
+func (ms MockStrategy) OnBookTicker(data *types.BookTicker) {
 	// 测试策略逻辑，例如打印数据
 	fmt.Println("Strategy BookTicker data:", data)
 
@@ -33,12 +37,16 @@ func (ms MockStrategy) OnBookTicker(data trader.BookTicker) {
 	ms.pricingChan <- struct{}{}
 }
 
-func (ms MockStrategy) OnTrade(data trader.Trade) {
+func (ms MockStrategy) OnTrade(data *types.Trade) {
 	// 测试策略逻辑，例如打印数据
 	fmt.Println("Strategy Trade data:", data)
 }
 
 func (ms MockStrategy) Prepare() {
+
+}
+
+func (ms MockStrategy) OnOrder(order *types.Order) {
 
 }
 
