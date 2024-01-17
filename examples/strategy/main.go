@@ -5,6 +5,7 @@ import (
 	"gotrader/exchange"
 	"gotrader/trader"
 	"gotrader/trader/constant"
+	"gotrader/trader/types"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +17,9 @@ var log = logrus.WithField("main", "strategy")
 
 func main() {
 	eventEngine := event.NewEventEngine()
+	onBookTickerCallback := func(bookticker *types.BookTicker) {
+		eventEngine.Push(constant.EVENT_BOOKTICKER, bookticker)
+	}
 
 	// 创建 TraderEngine 实例
 	traderEngine := trader.NewTraderEngine(eventEngine)
@@ -27,8 +31,14 @@ func main() {
 	// 创建策略
 	symbols := []string{"BTC_USDT", "ETH_USDT"}
 	for _, symbol := range symbols {
+		// Sub datafeed
+		err := okxSwap.SubscribeBookTicker([]string{symbol}, onBookTickerCallback)
+		if err != nil {
+			log.Errorf("SubscribeBookTicker err %s", err)
+		}
+
 		mockStrategy := NewStrategy()
-		traderEngine.AddStrategy(mockStrategy, []string{symbol})
+		traderEngine.AddStrategy(mockStrategy)
 	}
 
 	// 启动
@@ -43,4 +53,6 @@ func main() {
 		traderEngine.Stop()
 		os.Exit(1)
 	}()
+
+	select {}
 }

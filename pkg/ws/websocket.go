@@ -116,21 +116,6 @@ func (ws *WsClient) Close() {
 	close(ws.quit)
 }
 
-func (ws *WsClient) Subscribe(symbol string, topic string) error {
-	streams, err := ws.imp.Subscribe(symbol, topic)
-	if err != nil {
-		log.Errorf("gen Subscribe err: %s", err)
-		return err
-	}
-	ws.subscribe(streams)
-	return nil
-}
-
-func (ws *WsClient) subscribe(streams []byte) {
-	ws.WriteBytes(streams)
-	log.Infof("[%s] subscribe<%s>", ws.url, string(streams))
-}
-
 func (ws *WsClient) pingLoop() {
 	defer ws.Close()
 
@@ -143,6 +128,7 @@ func (ws *WsClient) pingLoop() {
 
 		select {
 		case <-time.After(ws.pingInterval):
+			ws.imp.Ping(ws)
 		case <-ws.quit:
 			return
 		}

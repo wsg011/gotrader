@@ -2,7 +2,7 @@ package exchange
 
 import (
 	"fmt"
-	"gotrader/exchange/okxv5swap"
+	"gotrader/exchange/okxv5"
 	"gotrader/trader"
 	"gotrader/trader/constant"
 )
@@ -10,7 +10,7 @@ import (
 func NewExchange(exchangeType constant.ExchangeType) trader.Exchange {
 	switch exchangeType {
 	case constant.OkxV5Swap:
-		return okxv5swap.NewOkxV5Swap("", "", "")
+		return okxv5.NewOkxV5Swap("", "", "")
 	default:
 		panic(fmt.Sprintf("new exchange error [%v]", exchangeType))
 	}

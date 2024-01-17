@@ -10,26 +10,34 @@ import (
 var log = logrus.WithField("main", "engine")
 
 type TraderEngine struct {
-	strategiesMap map[string]Strategy
-	eventEngine   *event.EventEngine
-	stopChan      chan struct{}
-	wg            sync.WaitGroup
+	strategies  []Strategy
+	eventEngine *event.EventEngine
+	stopChan    chan struct{}
+	wg          sync.WaitGroup
 }
 
 func NewTraderEngine(eventEngine *event.EventEngine) *TraderEngine {
 	return &TraderEngine{
-		strategiesMap: make(map[string]Strategy),
-		eventEngine:   eventEngine,
-		stopChan:      make(chan struct{}),
+		strategies:  make([]Strategy, 0),
+		eventEngine: eventEngine,
+		stopChan:    make(chan struct{}),
 	}
 }
 
-func (trader *TraderEngine) AddStrategy(strategy Strategy, symbols []string) {
+// AddStrategy 增加策略，并订阅EventEngine事件
+func (trader *TraderEngine) AddStrategy(strategy Strategy) {
+	trader.strategies = append(trader.strategies, strategy)
 
+	// trader.eventEngine.Register(constant.EVENT_BOOKTICKER, strategy.OnBookTicker)
 }
 
 func (trader *TraderEngine) Start() {
 	log.Infof("Start trader")
+	for _, strategy := range trader.strategies {
+		strategy.Start()
+	}
+
+	// TODO 定时检查策略状态
 }
 
 func (trader *TraderEngine) Stop() {

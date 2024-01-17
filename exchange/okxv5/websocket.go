@@ -1,4 +1,4 @@
-package okxv5swap
+package okxv5
 
 import (
 	"encoding/json"
@@ -26,23 +26,43 @@ type OkWsData struct {
 }
 
 type OkImp struct {
-	isPrivate bool
-	pingTimer *time.Timer
+	accessKey  string
+	secretKey  string
+	passphrase string
+	isPrivate  bool
+	pingTimer  *time.Timer
+	rspHandle  func(interface{})
 }
 
-func NewOkPubWsClient() *ws.WsClient {
-	imp := &OkImp{}
-	client := ws.NewWsClient(PubWsUrl, imp, constant.OkxV5Spot,
-		20*time.Second, 30*time.Second)
+func NewOkPubWsClient(rspHandle func(interface{})) *ws.WsClient {
+	imp := &OkImp{rspHandle: rspHandle}
+	client := ws.NewWsClient(PubWsUrl, imp, constant.OkxV5Spot, 20*time.Second, 30*time.Second)
 	return client
 }
 
+func NewOkPriWsClient(accessKey, secretKey, passphrase string, rspHandle func(interface{})) *ws.WsClient {
+	imp := &OkImp{
+		accessKey:  accessKey,
+		secretKey:  secretKey,
+		passphrase: passphrase,
+		rspHandle:  rspHandle,
+		isPrivate:  true,
+	}
+	client := ws.NewWsClient(PriWsUrl, imp, constant.OkxV5Spot, 20*time.Second, 30*time.Second)
+	return client
+}
+
+func (ok *OkImp) Ping(cli *ws.WsClient) {
+	log.Infof("ping")
+	cli.WriteBytes([]byte("ping"))
+}
 func (ok *OkImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
-	log.Info("ok ws connected")
 	if !ok.isPrivate {
+		log.Info("ok public ws connected")
 		return
 	}
-	ok.Login()
+	log.Info("ok private ws connected")
+	ok.Login(cli)
 }
 
 func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
@@ -53,6 +73,7 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 	}
 
 	if len(bs) == 4 && string(bs) == "pong" {
+		log.Infof("RecvPongTime %s", time.Now())
 		cli.SetRecvPongTime(time.Now())
 		return
 	}
@@ -74,6 +95,12 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 		return
 	}
 
+	if dat.Event == "login" {
+		log.WithField("Event", dat.Event).Info("ok login success")
+
+		return
+	}
+
 	switch dat.Arg.Channel {
 	case "bbo-tbt":
 		ok.onBboTbtRecv(dat.Arg.InstId, dat.Data)
@@ -82,8 +109,24 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 	}
 }
 
-func (ok *OkImp) Login() {
-	// TODO
+func (ok *OkImp) Login(cli *ws.WsClient) {
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	signature := generateOkxSignature(timestamp, ok.secretKey)
+
+	okxReq := map[string]interface{}{
+		"op": "login",
+		"args": []map[string]string{
+			{
+				"apiKey":     ok.accessKey,
+				"passphrase": ok.passphrase,
+				"timestamp":  timestamp,
+				"sign":       signature,
+			},
+		},
+	}
+
+	// 发送请求
+	cli.Write(okxReq)
 }
 
 func (ok *OkImp) onBboTbtRecv(instId string, dat json.RawMessage) {
@@ -132,48 +175,8 @@ func (ok *OkImp) onBboTbtRecv(instId string, dat json.RawMessage) {
 		BidQty:     bidQty,
 		ExchangeTs: ts,
 		TraceId:    utils.RandomString(8),
-		Ts:         utils.Millisec(time.Now()),
+		Ts:         utils.Microsec(time.Now()),
 	}
 
-	fmt.Println(evt)
-}
-
-func (ok *OkImp) Subscribe(symbol string, topic string) ([]byte, error) {
-	params := map[string]interface{}{
-		"op": "subscribe",
-		"args": []map[string]string{
-			{
-				"channel": topic,
-				"instId":  symbol,
-			},
-		},
-	}
-
-	streams, err := json.Marshal(params)
-	if err != nil {
-		return nil, err
-	}
-	return streams, nil
-}
-
-func SubscribeOkTbt(cli *ws.WsClient, symbol string) error {
-	type subscribeReq struct {
-		OP   string `json:"op"`
-		Args []struct {
-			Channel string `json:"channel"`
-			Symbol  string `json:"instId"`
-		} `json:"args"`
-	}
-
-	sub := &subscribeReq{}
-	sub.OP = "subscribe"
-	sub.Args = append(sub.Args, struct {
-		Channel string `json:"channel"`
-		Symbol  string `json:"instId"`
-	}{
-		Channel: "bbo-tbt",
-		Symbol:  Symbol2OkInstId(symbol),
-	})
-
-	return cli.Write(sub)
+	ok.rspHandle(evt)
 }

@@ -1,6 +1,9 @@
-package okxv5swap
+package okxv5
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -9,6 +12,7 @@ import (
 var (
 	RestUrl  = "https://www.okex.com"
 	PubWsUrl = "wss://ws.okx.com:8443/ws/v5/public"
+	PriWsUrl = "wss://ws.okx.com:8443/ws/v5/private"
 )
 
 const (
@@ -73,4 +77,17 @@ func BaseQuote(symbol string) (string, string) {
 
 func IsPerpSymbol(symbol string) bool {
 	return strings.Contains(symbol, "_PERP")
+}
+
+// generateSignature 生成签名
+func generateOkxSignature(timestamp string, secretKey string) string {
+	method := "GET"
+	requestPath := "/users/self/verify"
+	data := timestamp + method + requestPath
+
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+	return signature
 }

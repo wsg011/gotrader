@@ -1,4 +1,4 @@
-package okxv5swap
+package okxv5
 
 import "github.com/sirupsen/logrus"
 

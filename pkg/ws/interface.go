@@ -10,5 +10,5 @@ const (
 type WsImp interface {
 	OnConnected(*WsClient, ConnectType)
 	Handle(*WsClient, []byte)
-	Subscribe(symbol string, topic string) ([]byte, error)
+	Ping(*WsClient)
 }

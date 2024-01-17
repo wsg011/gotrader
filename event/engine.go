@@ -2,8 +2,12 @@ package event
 
 import (
 	"fmt"
+	"gotrader/trader/constant"
 	"reflect"
+	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Event struct {
@@ -11,21 +15,25 @@ type Event struct {
 	Data interface{}
 }
 
-type HandlerType func(event Event)
+type HandlerType func(interface{})
 
 // EventEngine is the main structure for the event engine.
 // It manages event handlers and provides methods to trigger
 // and handle events.
 type EventEngine struct {
 	sync.Mutex
-	handlers  map[string][]HandlerType
-	recoverer func(interface{}, error)
+	handlers    map[string][]HandlerType
+	recoverer   func(interface{}, error)
+	publicChan  chan Event
+	privateChan chan Event
 }
 
 // NewEventEngine creates a new instance of EventEngine.
 func NewEventEngine() *EventEngine {
 	return &EventEngine{
-		handlers: make(map[string][]HandlerType),
+		handlers:    make(map[string][]HandlerType),
+		publicChan:  make(chan Event, 100),
+		privateChan: make(chan Event, 100),
 	}
 }
 
@@ -33,23 +41,35 @@ func NewEventEngine() *EventEngine {
 // It calls all registered handlers for that event type
 // concurrently.
 func (e *EventEngine) Push(eventType string, data interface{}) {
-	e.Lock()
-	handlers, ok := e.handlers[eventType]
-	e.Unlock()
-
-	if ok {
-		for _, handler := range handlers {
-			go func(h HandlerType) {
-				defer e.handleRecovery(eventType)
-				h(Event{Type: eventType, Data: data})
-			}(handler)
-		}
+	switch eventType {
+	case constant.EVENT_BOOKTICKER:
+		e.publicChan <- Event{Type: eventType, Data: data}
+	default:
+		logrus.Warnf("Unknow event type %s", eventType)
 	}
+	// e.Lock()
+	// handlers := make([]HandlerType, 0)
+	// for handlerType := range e.handlers {
+	// 	if strings.HasPrefix(eventType, handlerType) {
+	// 		handler := e.handlers[handlerType]
+	// 		handlers = append(handlers, handler...)
+	// 	}
+	// }
+	// e.Unlock()
+
+	// if len(handlers) > 0 {
+	// 	for _, handler := range handlers {
+	// 		go func(h HandlerType) {
+	// 			defer e.handleRecovery(eventType)
+	// 			h(data)
+	// 		}(handler)
+	// 	}
+	// }
 
 }
 
 // Register adds a new handler for a specific event type.
-func (e *EventEngine) Register(eventType string, handler HandlerType) {
+func (e *EventEngine) Register(eventType string, handler func(interface{})) {
 	e.Lock()
 	defer e.Unlock()
 
@@ -89,4 +109,37 @@ func (e *EventEngine) handleRecovery(eventType interface{}) {
 			fmt.Printf("Recovered from panic in event `%v`: %v\n", eventType, r)
 		}
 	}
+}
+
+func (e *EventEngine) Start() {
+	e.Lock()
+	defer e.Unlock()
+
+	go func() {
+		for event := range e.publicChan {
+			logrus.Infof("event %s data %s", event.Type, event.Data)
+
+			eventType := event.Type
+			data := event.Data
+
+			e.Lock()
+			handlers := make([]HandlerType, 0)
+			for handlerType := range e.handlers {
+				if strings.HasPrefix(eventType, handlerType) {
+					handler := e.handlers[handlerType]
+					handlers = append(handlers, handler...)
+				}
+			}
+			e.Unlock()
+
+			if len(handlers) > 0 {
+				for _, handler := range handlers {
+					go func(h HandlerType) {
+						defer e.handleRecovery(eventType)
+						h(data)
+					}(handler)
+				}
+			}
+		}
+	}()
 }

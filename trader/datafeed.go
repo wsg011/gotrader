@@ -29,7 +29,7 @@ func (feed *DataFeed) AddExchange(exchangeType constant.ExchangeType, exchange E
 }
 
 // Subscribe 订阅交易所行情
-func (feed *DataFeed) Subscribe(exchangeType constant.ExchangeType, params []map[string]string) error {
+func (feed *DataFeed) Subscribe(exchangeType constant.ExchangeType, params map[string]interface{}) error {
 	exchange, exists := feed.exchanges[exchangeType]
 	if !exists {
 		return fmt.Errorf("exchange type %v not found", exchangeType)
