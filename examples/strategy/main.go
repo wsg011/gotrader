@@ -15,7 +15,7 @@ func main() {
 	log.Infof("init exchange %s", okxSwap.GetName())
 
 	// 创建策略
-	symbols := []string{"SOL_USDT", "ETH_USDT", "LTC_USDT", "BTC_USDT", "XRP_USDT", "ARB_USDT"}
+	symbols := []string{"ACE_USDT", "OP_USDT"}
 	for _, symbol := range symbols {
 		config := &Config{
 			Symbol:        symbol,

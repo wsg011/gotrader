@@ -13,6 +13,8 @@ type MakerStrategy struct {
 	config *Config
 	vars   *Vars
 
+	OMS *OrderManager
+
 	pricingChan chan struct{}
 	stopChan    chan struct{}
 }
@@ -21,6 +23,7 @@ func NewStrategy(name string, config *Config) *MakerStrategy {
 	return &MakerStrategy{
 		name:        name,
 		config:      config,
+		OMS:         &OrderManager{},
 		pricingChan: make(chan struct{}),
 		stopChan:    make(chan struct{}),
 	}
