@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	OhlcvRest               = "/api/v5/market/candles?%s"
+	FetchKlineUri           = "/api/v5/market/candles?%s"
 	OrderBookRest           = "/api/v5/market/books?%s"
 	SymbolsRest             = "/api/v5/public/instruments?instType=SWAP"
 	TickerRest              = "/api/v5/market/ticker?%s"

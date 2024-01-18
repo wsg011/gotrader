@@ -18,4 +18,7 @@ type Vars struct {
 	epoch           int64
 	BookTicker      *types.BookTicker
 	HedgeBookTicker *types.BookTicker
+
+	basisMean float64
+	basisStd  float64
 }

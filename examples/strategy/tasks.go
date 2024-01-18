@@ -3,15 +3,55 @@ package main
 import (
 	"gotrader/pkg/utils"
 	"time"
+
+	"github.com/montanaflynn/stats"
 )
 
 func (s *MakerStrategy) AddTasks() {
+	// Run task
+	s.UpdateBasis()
+
 	s.cron.AddFunc("*/1 * * * *", func() {
 		r := utils.GenerateRangeNum(5, 30)
 		time.Sleep(time.Duration(r) * time.Second)
-		log.Infof("1 min healcheck. %s", s.config.Symbol)
+		s.UpdateBasis()
 	})
 
 	s.cron.Start()
 	log.Infof("start cron")
+}
+
+func (s *MakerStrategy) UpdateBasis() {
+	var limit int64 = 100
+	spotKline, err := s.config.MakerExchange.FetchKline(s.config.Symbol, "1m", limit)
+	if err != nil {
+		log.Errorf("spot FetchKline error %s", err)
+		return
+	}
+	swapKline, err := s.config.MakerExchange.FetchKline(s.config.Symbol+"-SWAP", "1m", limit)
+	if err != nil {
+		log.Errorf("swap FetchKline error %s", err)
+		return
+	}
+	log.Infof("kline %v %v", spotKline[0], spotKline[1])
+	if len(spotKline) == 0 || len(swapKline) == 0 {
+		log.Errorf("Kline empty")
+		return
+	}
+	if len(spotKline) != len(swapKline) {
+		log.Errorf("Kline line not equ")
+		return
+	}
+
+	spread := make([]float64, 0, len(spotKline))
+	for i := 1; i < len(spotKline); i++ {
+		s := (swapKline[i].Close - spotKline[i].Close) / spotKline[i].Close
+		spread = append(spread, s)
+	}
+
+	mean, _ := stats.Mean(spread)
+	std, _ := stats.StandardDeviation(spread)
+	log.Infof("update basis mean %f std %f", mean, std)
+	s.vars.basisMean = mean
+	s.vars.basisStd = std
 }

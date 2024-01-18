@@ -11,8 +11,8 @@ import (
 type OkxV5Exchange struct {
 	exchangeType constant.ExchangeType
 
-	client   *RestClient
-	wsClient *ws.WsClient
+	restClient *RestClient
+	wsClient   *ws.WsClient
 
 	// callbacks
 	onBooktickerCallback func(*types.BookTicker)
@@ -23,7 +23,7 @@ func NewOkxV5Swap(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
 	client := NewRestClient(apiKey, secretKey, passPhrase)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Swap,
-		client:       client,
+		restClient:   client,
 	}
 	pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
 	if err := pubWsClient.Dial(ws.Connect); err != nil {
@@ -39,7 +39,7 @@ func NewOkxV5Spot(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
 	client := NewRestClient(apiKey, secretKey, passPhrase)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Spot,
-		client:       client,
+		restClient:   client,
 	}
 	pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
 	if err := pubWsClient.Dial(ws.Connect); err != nil {
@@ -62,6 +62,10 @@ func (okx *OkxV5Exchange) GetType() (typ constant.ExchangeType) {
 
 func (okx *OkxV5Exchange) GetTickers() {
 
+}
+
+func (okx *OkxV5Exchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
+	return okx.restClient.FetchKline(symbol, interval, limit)
 }
 
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
