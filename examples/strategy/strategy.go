@@ -5,6 +5,8 @@ import (
 	"gotrader/pkg/utils"
 	"gotrader/trader/types"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
 type MakerStrategy struct {
@@ -13,7 +15,8 @@ type MakerStrategy struct {
 	config *Config
 	vars   *Vars
 
-	OMS *OrderManager
+	OMS  *OrderManager
+	cron *cron.Cron
 
 	pricingChan chan struct{}
 	stopChan    chan struct{}
@@ -24,6 +27,7 @@ func NewStrategy(name string, config *Config) *MakerStrategy {
 		name:        name,
 		config:      config,
 		OMS:         &OrderManager{},
+		cron:        cron.New(),
 		pricingChan: make(chan struct{}),
 		stopChan:    make(chan struct{}),
 	}
@@ -67,7 +71,7 @@ func (s *MakerStrategy) OnTrade(data *types.Trade) {
 	fmt.Println("Strategy Trade data:", data)
 }
 
-func (s *MakerStrategy) Prepare() {
+func (s *MakerStrategy) Prepare() error {
 	// Load Config
 	log.Infof("config %v", s.config)
 
@@ -76,6 +80,9 @@ func (s *MakerStrategy) Prepare() {
 		epoch: 0,
 	}
 	s.vars = vars
+
+	s.AddTasks()
+	return nil
 }
 
 func (s *MakerStrategy) OnOrder(order *types.Order) {
@@ -83,7 +90,10 @@ func (s *MakerStrategy) OnOrder(order *types.Order) {
 }
 
 func (s *MakerStrategy) Start() {
-	s.Prepare()
+	if err := s.Prepare(); err != nil {
+		log.Errorf("Prepare error %s", err)
+		return
+	}
 
 	go s.Run()
 }

@@ -21,8 +21,10 @@ func (s *MakerStrategy) Pricing() {
 	askOrders, bidOrders := s.genOrders(ask_price, bid_price)
 	place_orders, cancel_orders := s.OMS.MatchOrders(askOrders, bidOrders)
 
-	log.Infof("place_orders %v", place_orders)
-	log.Infof("cancel_orders %v", cancel_orders)
+	if s.vars.epoch%100 == 0 {
+		log.Infof("place_orders %v", place_orders)
+		log.Infof("cancel_orders %v", cancel_orders)
+	}
 }
 
 func (s *MakerStrategy) genOrders(askPrice, biPrice float64) ([]types.Order, []types.Order) {
