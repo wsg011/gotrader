@@ -53,7 +53,7 @@ func NewOkPriWsClient(accessKey, secretKey, passphrase string, rspHandle func(in
 }
 
 func (ok *OkImp) Ping(cli *ws.WsClient) {
-	log.Infof("ping")
+	// log.Infof("ping")
 	cli.WriteBytes([]byte("ping"))
 }
 func (ok *OkImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
@@ -73,7 +73,7 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 	}
 
 	if len(bs) == 4 && string(bs) == "pong" {
-		log.Infof("RecvPongTime %s", time.Now())
+		// log.Infof("RecvPongTime %s", time.Now())
 		cli.SetRecvPongTime(time.Now())
 		return
 	}
@@ -173,7 +173,7 @@ func (ok *OkImp) onBboTbtRecv(instId string, dat json.RawMessage) {
 		AskQty:     askQty,
 		BidPrice:   bidPrice,
 		BidQty:     bidQty,
-		ExchangeTs: ts,
+		ExchangeTs: ts * 1000,
 		TraceId:    utils.RandomString(8),
 		Ts:         utils.Microsec(time.Now()),
 	}

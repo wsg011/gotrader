@@ -3,11 +3,14 @@ package okxv5
 import (
 	"fmt"
 	"gotrader/pkg/ws"
+	"gotrader/trader/constant"
 	"gotrader/trader/types"
 	"time"
 )
 
 type OkxV5Exchange struct {
+	exchangeType constant.ExchangeType
+
 	client   *RestClient
 	wsClient *ws.WsClient
 
@@ -19,7 +22,24 @@ type OkxV5Exchange struct {
 func NewOkxV5Swap(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
 	client := NewRestClient(apiKey, secretKey, passPhrase)
 	exchange := &OkxV5Exchange{
-		client: client,
+		exchangeType: constant.OkxV5Swap,
+		client:       client,
+	}
+	pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
+	if err := pubWsClient.Dial(ws.Connect); err != nil {
+		log.Errorf("pubWsClient.Dial err %s", err)
+	} else {
+		exchange.wsClient = pubWsClient
+		log.Infof("pubWsClient.Dial success")
+	}
+	return exchange
+}
+
+func NewOkxV5Spot(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
+	client := NewRestClient(apiKey, secretKey, passPhrase)
+	exchange := &OkxV5Exchange{
+		exchangeType: constant.OkxV5Spot,
+		client:       client,
 	}
 	pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
 	if err := pubWsClient.Dial(ws.Connect); err != nil {
@@ -32,8 +52,12 @@ func NewOkxV5Swap(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
 }
 
 func (okx *OkxV5Exchange) GetName() (name string) {
-	return "OkxV5Swap"
+	return okx.exchangeType.Name()
 
+}
+
+func (okx *OkxV5Exchange) GetType() (typ constant.ExchangeType) {
+	return okx.exchangeType
 }
 
 func (okx *OkxV5Exchange) GetTickers() {

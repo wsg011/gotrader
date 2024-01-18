@@ -1,4 +1,4 @@
 package main
 
-func (ms MockStrategy) Hedge() {
+func (s *MakerStrategy) Hedge() {
 }

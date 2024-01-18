@@ -2,72 +2,101 @@ package main
 
 import (
 	"fmt"
+	"gotrader/pkg/utils"
 	"gotrader/trader/types"
+	"time"
 )
 
-type MockStrategy struct {
+type MakerStrategy struct {
+	name string
+
+	config *Config
+	vars   *Vars
+
 	pricingChan chan struct{}
 	stopChan    chan struct{}
 }
 
-func NewStrategy() *MockStrategy {
-	return &MockStrategy{
+func NewStrategy(name string, config *Config) *MakerStrategy {
+	return &MakerStrategy{
+		name:        name,
+		config:      config,
 		pricingChan: make(chan struct{}),
 		stopChan:    make(chan struct{}),
 	}
 }
 
-func (ms *MockStrategy) GetName() string {
-	return "MockStrategy"
+func (s *MakerStrategy) GetName() string {
+	return "MakerStrategy"
 }
 
-func (ms MockStrategy) OnOrderBook(data types.OrderBook) {
-	// 测试策略逻辑，例如打印数据
-	fmt.Println("Strategy OrderBook data:", data)
-
+func (s *MakerStrategy) OnOrderBook(data *types.OrderBook) {
 	// 通知定价
-	ms.pricingChan <- struct{}{}
+	s.pricingChan <- struct{}{}
 }
 
-func (ms MockStrategy) OnBookTicker(data types.BookTicker) {
-	// 测试策略逻辑，例如打印数据
-	fmt.Println("Strategy BookTicker data:", data)
+func (s *MakerStrategy) OnBookTicker(bookTicker *types.BookTicker) {
+	s.vars.epoch++
 
-	// 通知定价
-	ms.pricingChan <- struct{}{}
+	switch bookTicker.Exchange {
+	case s.config.MakerExchange.GetType():
+		s.vars.BookTicker = bookTicker
+	case s.config.HedgeExchange.GetType():
+		s.vars.HedgeBookTicker = bookTicker
+	default:
+		log.Warnf("unknow exhcange BookTicker data: %s", bookTicker.Exchange.Name())
+	}
+
+	if s.vars.epoch%100 == 0 {
+		log.Infof("curr bookTicker %s %s, feedDelay %v processDelay %v us",
+			bookTicker.Exchange.Name(),
+			bookTicker.Symbol,
+			bookTicker.Ts-bookTicker.ExchangeTs,
+			utils.Microsec(time.Now())-bookTicker.Ts,
+		)
+
+	}
+
+	s.pricingChan <- struct{}{}
 }
 
-func (ms MockStrategy) OnTrade(data types.Trade) {
-	// 测试策略逻辑，例如打印数据
+func (s *MakerStrategy) OnTrade(data *types.Trade) {
 	fmt.Println("Strategy Trade data:", data)
 }
 
-func (ms MockStrategy) Prepare() {
+func (s *MakerStrategy) Prepare() {
+	// Load Config
+	log.Infof("config %v", s.config)
+
+	// init vars
+	vars := &Vars{
+		epoch: 0,
+	}
+	s.vars = vars
+}
+
+func (s *MakerStrategy) OnOrder(order *types.Order) {
 
 }
 
-func (ms MockStrategy) OnOrder(order types.Order) {
+func (s *MakerStrategy) Start() {
+	s.Prepare()
 
+	go s.Run()
 }
 
-func (ms MockStrategy) Start() {
-	ms.Prepare()
-
-	go ms.Run()
-}
-
-func (ms MockStrategy) Run() {
-	fmt.Println("Run Strategy")
+func (s *MakerStrategy) Run() {
+	log.Infof("Run Strategy")
 	for {
 		select {
-		case <-ms.pricingChan:
-			ms.Pricing()
-		case <-ms.stopChan:
+		case <-s.stopChan:
 			return
+		case <-s.pricingChan:
+			s.Pricing()
 		}
 	}
 }
 
-func (ms MockStrategy) Close() {
-	close(ms.stopChan)
+func (s *MakerStrategy) Close() {
+	close(s.stopChan)
 }
