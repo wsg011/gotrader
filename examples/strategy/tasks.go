@@ -10,11 +10,17 @@ import (
 func (s *MakerStrategy) AddTasks() {
 	// Run task
 	s.UpdateBasis()
+	s.UpdateFundingRate()
 
 	s.cron.AddFunc("*/1 * * * *", func() {
 		r := utils.GenerateRangeNum(5, 30)
 		time.Sleep(time.Duration(r) * time.Second)
 		s.UpdateBasis()
+	})
+	s.cron.AddFunc("@hourly", func() {
+		r := utils.GenerateRangeNum(5, 30)
+		time.Sleep(time.Duration(r) * time.Second)
+		s.UpdateFundingRate()
 	})
 
 	s.cron.Start()
@@ -33,7 +39,6 @@ func (s *MakerStrategy) UpdateBasis() {
 		log.Errorf("swap FetchKline error %s", err)
 		return
 	}
-	log.Infof("kline %v %v", spotKline[0], spotKline[1])
 	if len(spotKline) == 0 || len(swapKline) == 0 {
 		log.Errorf("Kline empty")
 		return
@@ -54,4 +59,14 @@ func (s *MakerStrategy) UpdateBasis() {
 	log.Infof("update basis mean %f std %f", mean, std)
 	s.vars.basisMean = mean
 	s.vars.basisStd = std
+}
+
+func (s *MakerStrategy) UpdateFundingRate() {
+	fundingRate, err := s.config.MakerExchange.FetchFundingRate(s.config.Symbol + "-SWAP")
+	if err != nil {
+		log.Errorf("FetchFundingRate err %s", err)
+	}
+
+	s.vars.fundingRate = fundingRate.FundingRate
+	log.Infof("update funding rate %v", fundingRate)
 }

@@ -2,6 +2,7 @@ package okxv5
 
 import (
 	"gotrader/pkg/ws"
+	"gotrader/trader/types"
 	"testing"
 	"time"
 )
@@ -35,7 +36,12 @@ func TestPriWsClient(t *testing.T) {
 }
 
 func TestExchange(t *testing.T) {
-	exchange := NewOkxV5Swap("", "", "")
+	params := &types.ExchangeParameters{
+		AccessKey:  "",
+		SecretKey:  "",
+		Passphrase: "",
+	}
+	exchange := NewOkxV5Swap(params)
 	name := exchange.GetName()
 	t.Logf("init exchange %s", name)
 

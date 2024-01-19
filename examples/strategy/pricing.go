@@ -14,7 +14,12 @@ func (s *MakerStrategy) Pricing() {
 		return
 	}
 	ask_price, bid_price := s.vars.HedgeBookTicker.AskPrice, s.vars.HedgeBookTicker.BidPrice
+
+	ask_price = ask_price * (1 + s.vars.basisMean + 2*s.vars.basisStd - s.vars.fundingRate + 0.0004)
+	bid_price = bid_price * (1 + s.vars.basisMean + 2*s.vars.basisStd - s.vars.fundingRate - 0.0004)
 	if s.vars.epoch%100 == 0 {
+		log.Infof("Swap [%f:%f]", s.vars.BookTicker.AskPrice, s.vars.BookTicker.BidPrice)
+		log.Infof("Spot [%f:%f]", s.vars.HedgeBookTicker.AskPrice, s.vars.HedgeBookTicker.BidPrice)
 		log.Infof("Pricing [%f:%f]", ask_price, bid_price)
 	}
 

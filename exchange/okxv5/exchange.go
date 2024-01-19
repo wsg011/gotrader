@@ -19,7 +19,12 @@ type OkxV5Exchange struct {
 	onOrderCallback      func(*types.Order)
 }
 
-func NewOkxV5Swap(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
+func NewOkxV5Swap(params *types.ExchangeParameters) *OkxV5Exchange {
+	apiKey := params.AccessKey
+	secretKey := params.SecretKey
+	passPhrase := params.Passphrase
+
+	// new client
 	client := NewRestClient(apiKey, secretKey, passPhrase)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Swap,
@@ -35,7 +40,12 @@ func NewOkxV5Swap(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
 	return exchange
 }
 
-func NewOkxV5Spot(apiKey, secretKey, passPhrase string) *OkxV5Exchange {
+func NewOkxV5Spot(params *types.ExchangeParameters) *OkxV5Exchange {
+	apiKey := params.AccessKey
+	secretKey := params.SecretKey
+	passPhrase := params.Passphrase
+
+	// new client
 	client := NewRestClient(apiKey, secretKey, passPhrase)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Spot,
@@ -66,6 +76,14 @@ func (okx *OkxV5Exchange) GetTickers() {
 
 func (okx *OkxV5Exchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
 	return okx.restClient.FetchKline(symbol, interval, limit)
+}
+
+func (okx *OkxV5Exchange) FetchFundingRate(symbol string) (*types.FundingRate, error) {
+	return okx.restClient.FetchFundingRate(symbol)
+}
+
+func (okx *OkxV5Exchange) FetchBalance() (*types.Assets, error) {
+	return okx.restClient.FetchBalance()
 }
 
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {

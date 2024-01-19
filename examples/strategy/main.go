@@ -3,19 +3,67 @@ package main
 import (
 	"gotrader/exchange"
 	"gotrader/trader/constant"
+	"gotrader/trader/types"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
 	"syscall"
+
+	"github.com/BurntSushi/toml"
 )
 
+type GlobalConfig struct {
+	Exchange map[string]ExchangeConfig `toml:"exchange"`
+	Symbols  []string                  `toml:"symbols"`
+}
+
+type ExchangeConfig struct {
+	Name      string `toml:"name"`
+	ApiKey    string `toml:"api_key"`
+	SecretKey string `toml:"secret_key"`
+	Passphase string `toml:"passphase"`
+}
+
+func ReadConfig(path string) (*GlobalConfig, error) {
+	var config GlobalConfig
+	_, err := toml.DecodeFile(path, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
 func main() {
+	_, filename, _, _ := runtime.Caller(0)
+	configFile := filepath.Join(filepath.Dir(filename), "config.toml")
+
+	globalConfig, err := ReadConfig(configFile)
+	if err != nil {
+		log.Errorf("load global config errr: %s", err)
+		return
+	}
+	log.Infof("load global config, symbols: %v", globalConfig.Symbols)
+
 	// 初始化交易所
-	okxSwap := exchange.NewExchange(constant.OkxV5Swap)
-	okxSpot := exchange.NewExchange(constant.OkxV5Spot)
+	okxSwapParams := &types.ExchangeParameters{
+		AccessKey:  globalConfig.Exchange["okx"].ApiKey,
+		SecretKey:  globalConfig.Exchange["okx"].SecretKey,
+		Passphrase: globalConfig.Exchange["okx"].Passphase,
+	}
+	okxSwap := exchange.NewExchange(constant.OkxV5Swap, okxSwapParams)
+	okxSpot := exchange.NewExchange(constant.OkxV5Spot, okxSwapParams)
 	log.Infof("init exchange %s", okxSwap.GetName())
 
+	balance, err := okxSpot.FetchBalance()
+	if err != nil {
+		log.Errorf("fetch balance error %s", err)
+		return
+	}
+	log.Infof("balance %v", balance.TotalUsdEq)
+
 	// 创建策略
-	symbols := []string{"ACE_USDT", "OP_USDT"}
+	symbols := globalConfig.Symbols
 	for _, symbol := range symbols {
 		config := &Config{
 			Symbol:        symbol,

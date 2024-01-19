@@ -18,7 +18,8 @@ var (
 const (
 	FetchKlineUri           = "/api/v5/market/candles?%s"
 	OrderBookRest           = "/api/v5/market/books?%s"
-	SymbolsRest             = "/api/v5/public/instruments?instType=SWAP"
+	SymbolsRest             = "/api/v5/public/instruments"
+	FetchFundingRateUri     = "/api/v5/public/funding-rate"
 	TickerRest              = "/api/v5/market/ticker?%s"
 	TickersRest             = "/api/v5/market/tickers?%s"
 	TradeRest               = "/api/v5/market/trades?%s"

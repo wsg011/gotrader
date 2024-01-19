@@ -19,6 +19,7 @@ type Vars struct {
 	BookTicker      *types.BookTicker
 	HedgeBookTicker *types.BookTicker
 
-	basisMean float64
-	basisStd  float64
+	basisMean   float64
+	basisStd    float64
+	fundingRate float64
 }

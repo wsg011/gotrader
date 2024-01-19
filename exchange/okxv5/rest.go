@@ -34,7 +34,7 @@ func NewRestClient(apiKey, secretKey, passPhrase string) *RestClient {
 	return client
 }
 
-func (client *RestClient) Request(method string, uri string, payload []byte) ([]byte, *http.Response, error) {
+func (client *RestClient) HttpRequest(method string, uri string, payload []byte) ([]byte, *http.Response, error) {
 	var param string
 	if payload != nil {
 		param = string(payload)
@@ -50,6 +50,7 @@ func (client *RestClient) Request(method string, uri string, payload []byte) ([]
 		"OK-ACCESS-TIMESTAMP":  currentTime,
 		"OK-ACCESS-PASSPHRASE": client.passPhrase,
 	}
+	log.Infof("head %s", head)
 	args := &httpx.Request{
 		Url:    url,
 		Head:   head,
@@ -260,4 +261,204 @@ func klineTransform(response *KlineRsp) ([]types.Kline, error) {
 		result = append(result, k)
 	}
 	return result, nil
+}
+
+type FundingRateRsp struct {
+	BaseOkRsp
+	Data []FundingRate `json:"data"`
+}
+
+func (t *FundingRateRsp) valid() bool {
+	return t.Code == "0" && len(t.Data) > 0
+}
+
+type FundingRate struct {
+	Method          string `json:"method"`
+	FundingRate     string `json:"fundingRate"`
+	FundingTime     string `json:"fundingTime"`
+	InstID          string `json:"instId"`
+	InstType        string `json:"instType"`
+	NextFundingRate string `json:"nextFundingRate"`
+	NextFundingTime string `json:"nextFundingTime"`
+}
+
+func (client *RestClient) FetchFundingRate(symbol string) (*types.FundingRate, error) {
+	queryDict := map[string]interface{}{}
+	queryDict["instId"] = Symbol2OkInstId(symbol)
+	payload := utils.UrlEncodeParams(queryDict)
+	url := RestUrl + fmt.Sprintf("%s?%s", FetchFundingRateUri, payload)
+
+	body, _, err := client.HttpGet(url)
+	if err != nil {
+		log.Errorf("ok get /api/v5/public/funding-rate err:%v", err)
+		return nil, err
+	}
+
+	response := new(FundingRateRsp)
+	if err = json.Unmarshal(body, response); err != nil {
+		log.Errorf("ok get /api/v5/public/funding-rate parser err:%v", err)
+		return nil, err
+	}
+
+	if !response.valid() {
+		err := fmt.Errorf("ok get /api/v5/public/funding-rate fail, code:%s, msg:%s", response.Code, response.Msg)
+		return nil, err
+	}
+
+	if len(response.Data) == 0 {
+		err := fmt.Errorf("ok get /api/v5/public/funding-rate empty")
+		return nil, err
+	}
+
+	result, err := fundingRateTransform(response)
+	if err != nil {
+		err := fmt.Errorf("ok get /api/v5/public/funding-rate transform err:%s", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func fundingRateTransform(response *FundingRateRsp) (*types.FundingRate, error) {
+	fr := response.Data[0]
+	rate, err := strconv.ParseFloat(fr.FundingRate, 64)
+	if err != nil {
+		return nil, err
+	}
+	nextRate, err := parseStringToFloat(fr.NextFundingRate)
+	if err != nil {
+		return nil, err
+	}
+	t, err := strconv.ParseInt(fr.FundingTime, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	nt, err := parseStringToInt(fr.NextFundingTime)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.FundingRate{
+		FundingRate:     rate,
+		FundingTime:     t,
+		Method:          fr.Method,
+		Symbol:          fr.InstID,
+		NextFundingRate: nextRate,
+		NextFundingTime: nt,
+	}, nil
+}
+
+func parseStringToFloat(s string) (float64, error) {
+	if s == "" {
+		return 0, nil
+	}
+	return strconv.ParseFloat(s, 64)
+}
+
+func parseStringToInt(s string) (int64, error) {
+	if s == "" {
+		return 0, nil
+	}
+	return strconv.ParseInt(s, 10, 64)
+}
+
+type OkBalance struct {
+	AdjEq       string             `json:"adjEq"`
+	BorrowFroz  string             `json:"borrowFroz"`
+	Details     []*OkBalanceDetail `json:"details"`
+	Imr         string             `json:"imr"`
+	IsoEq       string             `json:"isoEq"`
+	MgnRatio    string             `json:"mgnRatio"`
+	Mmr         string             `json:"mmr"`
+	NotionalUsd string             `json:"notionalUsd"`
+	OrdFroz     string             `json:"ordFroz"`
+	TotalEq     string             `json:"totalEq"`
+	UTime       string             `json:"uTime"`
+}
+
+// 去掉了一些不太可能使用的字段
+type OkBalanceDetail struct {
+	AvailBal      string `json:"availBal"`
+	AvailEq       string `json:"availEq"`
+	CashBal       string `json:"cashBal"`
+	Ccy           string `json:"ccy"`
+	CrossLiab     string `json:"crossLiab"`
+	Eq            string `json:"eq"`
+	EqUsd         string `json:"eqUsd"`
+	FixedBal      string `json:"fixedBal"`
+	FrozenBal     string `json:"frozenBal"`
+	IsoEq         string `json:"isoEq"`
+	IsoLiab       string `json:"isoLiab"`
+	IsoUpl        string `json:"isoUpl"`
+	MgnRatio      string `json:"mgnRatio"`
+	NotionalLever string `json:"notionalLever"`
+	OrdFrozen     string `json:"ordFrozen"`
+	UTime         string `json:"uTime"`
+	Upl           string `json:"upl"`
+	UplLiab       string `json:"uplLiab"`
+}
+
+func (b OkBalanceDetail) ToAssets() types.Asset {
+	free, _ := strconv.ParseFloat(b.CashBal, 64)
+	frozen, _ := strconv.ParseFloat(b.FrozenBal, 64)
+	total, _ := strconv.ParseFloat(b.Eq, 64)
+	return types.Asset{
+		Coin:   b.Ccy,
+		Free:   free,
+		Frozen: frozen,
+		Total:  total,
+	}
+}
+
+type BalanceRsp struct {
+	BaseOkRsp
+	Data []*OkBalance `json:"data"`
+}
+
+func (t *BalanceRsp) valid() bool {
+	return t.Code == "0" && len(t.Data) > 0
+}
+
+func (client *RestClient) FetchBalance() (*types.Assets, error) {
+	url := FetchBalanceUri
+	body, _, err := client.HttpRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Errorf("ok get /api/v5/account/balance err:%v", err)
+		return nil, err
+	}
+
+	response := new(BalanceRsp)
+	if err = json.Unmarshal(body, response); err != nil {
+		log.Errorf("ok get /api/v5/account/balance parser err:%v", err)
+		return nil, err
+	}
+
+	if !response.valid() {
+		err := fmt.Errorf("ok get /api/v5/account/balance fail, code:%s, msg:%s", response.Code, response.Msg)
+		return nil, err
+	}
+
+	if len(response.Data) == 0 {
+		err := fmt.Errorf("ok get /api/v5/account/balance empty")
+		return nil, err
+	}
+
+	result, err := balanceTransform(response)
+	if err != nil {
+		err := fmt.Errorf("ok get /api/v5/account/balance transform err:%s", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func balanceTransform(response *BalanceRsp) (*types.Assets, error) {
+	bal := response.Data[0]
+	assets := make(map[string]types.Asset, len(bal.Details))
+	for _, a := range bal.Details {
+		assets[a.Ccy] = a.ToAssets()
+	}
+	totalEq, _ := strconv.ParseFloat(bal.TotalEq, 64)
+	return &types.Assets{
+		Assets:     assets,
+		TotalUsdEq: totalEq,
+	}, nil
 }

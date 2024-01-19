@@ -100,6 +100,19 @@ func (ws *WsClient) Dial(typ ConnectType) error {
 	return nil
 }
 
+func (ws *WsClient) reconnect() {
+	ws.Close() // 关闭现有连接
+	for {
+		err := ws.Dial(Reconnect)
+		if err != nil {
+			log.WithError(err).Errorln("Reconnect failed, retrying...")
+			time.Sleep(5 * time.Second) // 重连前等待
+			continue
+		}
+		break
+	}
+}
+
 func (ws *WsClient) Close() {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
@@ -154,7 +167,8 @@ func (ws *WsClient) readLoop() {
 		_, body, err := conn.ReadMessage()
 		if err != nil {
 			log.WithError(err).Errorf("websocket conn read timeout in 120 seconds")
-			break
+			ws.reconnect() // 断开时重连
+			return
 		}
 		func() {
 			defer func() {

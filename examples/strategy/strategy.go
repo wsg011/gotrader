@@ -77,9 +77,10 @@ func (s *MakerStrategy) Prepare() error {
 
 	// init vars
 	vars := &Vars{
-		epoch:     0,
-		basisMean: 0.0,
-		basisStd:  0.0,
+		epoch:       0,
+		basisMean:   0.0,
+		basisStd:    0.0,
+		fundingRate: 0.0,
 	}
 	s.vars = vars
 
