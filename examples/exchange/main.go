@@ -50,7 +50,8 @@ func main() {
 		}
 
 	}
-	exchange := okxv5.NewOkxV5Swap("", "", "")
+	params := &types.ExchangeParameters{}
+	exchange := okxv5.NewOkxV5Swap(params)
 	symbols := []string{"BTC_USDT", "BTC_USDT_SWAP", "ETH_USDT", "ETH_USDT_SWAP", "SOL_USDT", "SOL_USDT_SWAP"}
 	err := exchange.SubscribeBookTicker(symbols, onBookTickerHandle)
 	if err != nil {
