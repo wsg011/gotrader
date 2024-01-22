@@ -2,8 +2,8 @@ package trader
 
 import (
 	"fmt"
-	"gotrader/event"
-	"gotrader/trader/constant"
+	"github.com/wsg011/gotrader/event"
+	"github.com/wsg011/gotrader/trader/constant"
 )
 
 type DataFeed struct {
