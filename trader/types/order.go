@@ -1,7 +1,7 @@
 package types
 
 import (
-	"gotrader/trader/constant"
+	"github.com/wsg011/gotrader/trader/constant"
 	"strconv"
 )
 

@@ -2,8 +2,8 @@ package ws
 
 import (
 	"fmt"
-	"gotrader/pkg/utils"
-	"gotrader/trader/constant"
+	"github.com/wsg011/gotrader/pkg/utils"
+	"github.com/wsg011/gotrader/trader/constant"
 	"net/http"
 	"sync"
 	"sync/atomic"

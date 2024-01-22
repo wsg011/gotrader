@@ -2,9 +2,9 @@ package okxv5
 
 import (
 	"fmt"
-	"gotrader/pkg/ws"
-	"gotrader/trader/constant"
-	"gotrader/trader/types"
+	"github.com/wsg011/gotrader/pkg/ws"
+	"github.com/wsg011/gotrader/trader/constant"
+	"github.com/wsg011/gotrader/trader/types"
 	"time"
 )
 

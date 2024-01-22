@@ -1,6 +1,6 @@
 package types
 
-import "gotrader/trader/constant"
+import "github.com/wsg011/gotrader/trader/constant"
 
 type Position struct {
 	Symbol    string // BTC_USDT_PERP

@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"gotrader/trader/constant"
+	"github.com/wsg011/gotrader/trader/constant"
 	"hash/fnv"
 )
 

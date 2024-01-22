@@ -1,11 +1,11 @@
 package main
 
 import (
-	"gotrader/exchange/okxv5"
-	"gotrader/pkg/utils"
+	"github.com/wsg011/gotrader/exchange/okxv5"
+	"github.com/wsg011/gotrader/pkg/utils"
 	"time"
 
-	"gotrader/trader/types"
+	"github.com/wsg011/gotrader/trader/types"
 
 	"github.com/sirupsen/logrus"
 )
@@ -40,13 +40,12 @@ func main() {
 		epoch += 1
 		// log.Infof("onBookTickerHandle %v", bookticker)
 		if epoch%100 == 0 {
-
 			amount := bookticker.AskPrice * bookticker.AskQty
 			amount += 1
 
 			processDelay := utils.Microsec(time.Now()) - bookticker.Ts
-			feedDelay := bookticker.Ts - bookticker.ExchangeTs*1000
-			log.Infof("processDelay %v feedDelay %v us", processDelay, feedDelay)
+			feedDelay := bookticker.Ts - bookticker.ExchangeTs
+			log.Infof("%-16s processDelay %v feedDelay %v us", bookticker.Symbol, processDelay, feedDelay)
 		}
 
 	}
