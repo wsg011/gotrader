@@ -1,9 +1,9 @@
 package main
 
 import (
-	"gotrader/exchange"
-	"gotrader/trader/constant"
-	"gotrader/trader/types"
+	"github.com/wsg011/gotrader/exchange"
+	"github.com/wsg011/gotrader/trader/constant"
+	"github.com/wsg011/gotrader/trader/types"
 	"os"
 	"os/signal"
 	"syscall"

@@ -2,10 +2,10 @@ package exchange
 
 import (
 	"fmt"
-	"gotrader/exchange/okxv5"
-	"gotrader/trader"
-	"gotrader/trader/constant"
-	"gotrader/trader/types"
+	"github.com/wsg011/gotrader/exchange/okxv5"
+	"github.com/wsg011/gotrader/trader"
+	"github.com/wsg011/gotrader/trader/constant"
+	"github.com/wsg011/gotrader/trader/types"
 )
 
 func NewExchange(exchangeType constant.ExchangeType, params *types.ExchangeParameters) trader.Exchange {

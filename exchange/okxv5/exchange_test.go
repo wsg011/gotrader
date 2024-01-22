@@ -1,8 +1,8 @@
 package okxv5
 
 import (
-	"gotrader/pkg/ws"
-	"gotrader/trader/types"
+	"github.com/wsg011/gotrader/pkg/ws"
+	"github.com/wsg011/gotrader/trader/types"
 	"testing"
 	"time"
 )

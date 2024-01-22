@@ -1,6 +1,6 @@
 package trader
 
-import "gotrader/trader/types"
+import "github.com/wsg011/gotrader/trader/types"
 
 type Strategy interface {
 	GetName() string
