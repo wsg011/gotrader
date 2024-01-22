@@ -1,0 +1,3 @@
+## gotrader
+
+golang Trader Bot
