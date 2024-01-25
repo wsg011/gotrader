@@ -13,4 +13,5 @@ type Exchange interface {
 	FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error)
 	FetchFundingRate(symbol string) (*types.FundingRate, error)
 	FetchBalance() (*types.Assets, error)
+	CreateBatchOrders([]*types.Order) ([]*types.OrderResult, error)
 }

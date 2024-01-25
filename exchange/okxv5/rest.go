@@ -3,13 +3,15 @@ package okxv5
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/wsg011/gotrader/pkg/httpx"
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var httpClient = httpx.NewClient()
@@ -461,4 +463,86 @@ func balanceTransform(response *BalanceRsp) (*types.Assets, error) {
 		Assets:     assets,
 		TotalUsdEq: totalEq,
 	}, nil
+}
+
+type CreateOrderResult struct {
+	ClOrdID string `json:"clOrdId"`
+	OrdID   string `json:"ordId"`
+	Tag     string `json:"tag"`
+	SCode   string `json:"sCode"`
+	SMsg    string `json:"sMsg"`
+}
+
+type CreateOrderResponse struct {
+	BaseOkRsp
+	Data []*CreateOrderResult `json:"data"`
+}
+
+func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	param := make([]map[string]interface{}, 0)
+	for _, item := range orders {
+		param = append(param, formRequest(item))
+	}
+	payload, _ := json.Marshal(param)
+	uri := CreateBatchOrderUri
+	body, _, err := client.HttpRequest(http.MethodPost, uri, payload)
+	if err != nil {
+		log.Errorf("okx post /api/v5/trade/batch-orders err: %v", err)
+		return nil, err
+	}
+	response := new(CreateOrderResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		log.Errorf("okx post /api/v5/trade/batch-orders err 数据解析失败:%v", err)
+		return nil, err
+	}
+	if len(response.Data) == 0 {
+		err := fmt.Errorf("ok post /api/v5/trade/batch-orders err: %v", response)
+		return nil, err
+	}
+
+	result := make([]*types.OrderResult, 0)
+	var symbol string
+	if len(orders) > 0 {
+		symbol = orders[0].Symbol
+	}
+	for _, item := range response.Data {
+		info := orderTransform(symbol, item)
+		result = append(result, info)
+	}
+
+	return result, nil
+}
+
+func formRequest(order *types.Order) map[string]interface{} {
+	oSide := OkxOrderSide[order.Side.Name()]
+	oType := OkxOrderType[order.Type.Name()]
+	tdModel := "cash" // 现货
+	tmp := strings.Split(order.Symbol, "_")
+	if len(tmp) == 3 {
+		tdModel = "cross" // 目前只支持全仓模式
+	}
+	result := map[string]interface{}{
+		"instId":  Symbol2OkInstId(order.Symbol),
+		"tdMode":  tdModel,
+		"side":    Side2Okx[oSide],
+		"ordType": Type2Okx[oType],
+		"px":      order.Price,
+		"sz":      order.OrigQty,
+	}
+	if order.ClientID != "" {
+		result["clOrdId"] = order.ClientID
+	}
+
+	return result
+}
+
+func orderTransform(symbol string, info *CreateOrderResult) *types.OrderResult {
+	var result types.OrderResult
+	if info.SCode == "0" {
+		result.IsSuccess = true
+	}
+	result.OrderId = info.OrdID
+	result.ClientId = info.ClOrdID
+	result.ErrMsg = info.SMsg
+	return &result
 }

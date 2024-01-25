@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/wsg011/gotrader/trader/constant"
 	"strconv"
+
+	"github.com/wsg011/gotrader/trader/constant"
 )
 
 type Order struct {
@@ -69,4 +70,12 @@ func (order *Order) UpdateByTradeEvent(trade *Trade) (float64, float64) {
 		log.WithField("trade", *trade).Debug("order partial filling")
 	}
 	return totalFilled - executedQty, totalFilledAmt - executedAmt
+}
+
+type OrderResult struct {
+	IsSuccess bool
+	OrderId   string
+	ClientId  string
+	ErrCode   int32
+	ErrMsg    string
 }

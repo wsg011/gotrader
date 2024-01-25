@@ -7,12 +7,52 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/wsg011/gotrader/trader/constant"
 )
 
 var (
 	RestUrl  = "https://www.okex.com"
 	PubWsUrl = "wss://ws.okx.com:8443/ws/v5/public"
 	PriWsUrl = "wss://ws.okx.com:8443/ws/v5/private"
+
+	OkxOrderSide = map[string]string{
+		constant.OrderBuy.Name():   "LONG",
+		constant.OrderSell.Name():  "SHORT",
+		constant.Long.Name():       "LONG",
+		constant.Short.Name():      "SHORT",
+		constant.CloseLong.Name():  "CLOSE_LONG",
+		constant.CloseShort.Name(): "CLOSE_SHORT",
+		constant.All.Name():        "ALL",
+	}
+
+	Side2Okx = map[string]string{
+		constant.Long.Name():  "buy",
+		constant.Short.Name(): "sell",
+	}
+
+	Okx2Side = map[string]string{
+		"buy":  constant.Long.Name(),
+		"sell": constant.Short.Name(),
+	}
+
+	OkxOrderType = map[string]string{
+		constant.Limit.Name():    "LIMIT",
+		constant.Market.Name():   "MARKET",
+		constant.GTC.Name():      "GTC",
+		constant.IOC.Name():      "IOC",
+		constant.FOK.Name():      "FOK",
+		constant.PostOnly.Name(): "POST_ONLY",
+	}
+
+	Type2Okx = map[string]string{
+		constant.Limit.Name():    "limit",
+		constant.Market.Name():   "market",
+		constant.GTC.Name():      "gtc",
+		constant.FOK.Name():      "fok",
+		constant.IOC.Name():      "ioc",
+		constant.PostOnly.Name(): "post_only",
+	}
 )
 
 const (

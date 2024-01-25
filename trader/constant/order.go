@@ -5,20 +5,29 @@ type OrderType int
 
 func (t OrderType) Name() string {
 	switch t {
-	case OrderTypeLimit:
+	case Limit:
 		return "LIMIT"
-	case OrderTypeMarket:
+	case Market:
 		return "MARKET"
-	case OrderTypeIoc:
+	case IOC:
 		return "IOC"
+	case GTC:
+		return "GTC"
+	case FOK:
+		return "FOK"
+	case PostOnly:
+		return "POST_ONLY"
 	}
 	return "unknown_orderType"
 }
 
 const (
-	OrderTypeLimit OrderType = iota
-	OrderTypeMarket
-	OrderTypeIoc
+	Limit OrderType = iota
+	Market
+	IOC
+	GTC
+	FOK
+	PostOnly
 )
 
 // ORDER SIDE
@@ -30,6 +39,16 @@ func (s OrderSide) Name() string {
 		return "BUY"
 	case OrderSell:
 		return "SELL"
+	case Long:
+		return "LONG"
+	case Short:
+		return "SHORT"
+	case CloseLong:
+		return "CLOSELONG"
+	case CloseShort:
+		return "SHORT"
+	case All:
+		return "All"
 	}
 	return "unknown_orderSide"
 }
@@ -37,6 +56,11 @@ func (s OrderSide) Name() string {
 const (
 	OrderBuy OrderSide = iota
 	OrderSell
+	Long
+	Short
+	CloseLong
+	CloseShort
+	All
 )
 
 // ORDER STATUS
