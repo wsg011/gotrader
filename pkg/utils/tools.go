@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"hash"
 	"net/url"
+	"strconv"
 
 	"github.com/spf13/cast"
 )
@@ -65,4 +66,20 @@ func UrlEncodeParamsByKeys(paramsDict map[string]interface{}, keys []string) str
 		param.Add(k, val)
 	}
 	return param.Encode()
+}
+
+func ParseInt(str string) (int64, error) {
+	numberInt, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return numberInt, nil
+}
+
+func ParseFloat(str string) (float64, error) {
+	numberFloat, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return 0, err
+	}
+	return numberFloat, nil
 }

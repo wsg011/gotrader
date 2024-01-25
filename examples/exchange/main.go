@@ -1,9 +1,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/wsg011/gotrader/exchange/okxv5"
 	"github.com/wsg011/gotrader/pkg/utils"
-	"time"
 
 	"github.com/wsg011/gotrader/trader/types"
 
@@ -51,7 +52,7 @@ func main() {
 	}
 	params := &types.ExchangeParameters{}
 	exchange := okxv5.NewOkxV5Swap(params)
-	symbols := []string{"BTC_USDT", "BTC_USDT_SWAP", "ETH_USDT", "ETH_USDT_SWAP", "SOL_USDT", "SOL_USDT_SWAP"}
+	symbols := []string{"APE_USDT", "APE_USDT_SWAP"}
 	err := exchange.SubscribeBookTicker(symbols, onBookTickerHandle)
 	if err != nil {
 		log.Errorf("SubscribeBookticker err %s", err)

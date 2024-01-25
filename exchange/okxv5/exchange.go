@@ -2,10 +2,11 @@ package okxv5
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
-	"time"
 )
 
 type OkxV5Exchange struct {
@@ -70,8 +71,8 @@ func (okx *OkxV5Exchange) GetType() (typ constant.ExchangeType) {
 	return okx.exchangeType
 }
 
-func (okx *OkxV5Exchange) GetTickers() {
-
+func (okx *OkxV5Exchange) FetchTickers() ([]types.BookTicker, error) {
+	return okx.restClient.FetchTickers()
 }
 
 func (okx *OkxV5Exchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
@@ -84,6 +85,10 @@ func (okx *OkxV5Exchange) FetchFundingRate(symbol string) (*types.FundingRate, e
 
 func (okx *OkxV5Exchange) FetchBalance() (*types.Assets, error) {
 	return okx.restClient.FetchBalance()
+}
+
+func (okx *OkxV5Exchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	return okx.restClient.CreateBatchOrders(orders)
 }
 
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
