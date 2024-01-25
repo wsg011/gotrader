@@ -14,4 +14,5 @@ type Exchange interface {
 	FetchFundingRate(symbol string) (*types.FundingRate, error)
 	FetchBalance() (*types.Assets, error)
 	CreateBatchOrders([]*types.Order) ([]*types.OrderResult, error)
+	CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error)
 }
