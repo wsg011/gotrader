@@ -479,6 +479,8 @@ type CreateOrderResponse struct {
 }
 
 func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	startTime := time.Now()
+
 	param := make([]map[string]interface{}, 0)
 	for _, item := range orders {
 		param = append(param, formRequest(item))
@@ -486,6 +488,8 @@ func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.Ord
 	payload, _ := json.Marshal(param)
 	uri := CreateBatchOrderUri
 	body, _, err := client.HttpRequest(http.MethodPost, uri, payload)
+	httpRequestTime := time.Now()
+
 	if err != nil {
 		log.Errorf("okx post /api/v5/trade/batch-orders err: %v", err)
 		return nil, err
@@ -509,7 +513,7 @@ func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.Ord
 		info := orderTransform(symbol, item)
 		result = append(result, info)
 	}
-
+	log.Infof("HTTP cost time: %v", httpRequestTime.Sub(startTime))
 	return result, nil
 }
 
@@ -537,6 +541,77 @@ func formRequest(order *types.Order) map[string]interface{} {
 }
 
 func orderTransform(symbol string, info *CreateOrderResult) *types.OrderResult {
+	var result types.OrderResult
+	if info.SCode == "0" {
+		result.IsSuccess = true
+	}
+	result.OrderId = info.OrdID
+	result.ClientId = info.ClOrdID
+	result.ErrMsg = info.SMsg
+	return &result
+}
+
+type CancelOrderResponse struct {
+	Code string               `json:"code"`
+	Msg  string               `json:"msg"`
+	Data []*CancelOrderResult `json:"data"`
+}
+
+type CancelOrderResult struct {
+	ClOrdID string `json:"clOrdId"`
+	OrdID   string `json:"ordId"`
+	SCode   string `json:"sCode"`
+	SMsg    string `json:"sMsg"`
+}
+
+func (client *RestClient) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	startTime := time.Now()
+	param := make([]map[string]interface{}, 0)
+	for _, item := range orders {
+		param = append(param, formCancelRequest(item))
+	}
+	payload, _ := json.Marshal(param)
+	uri := CancelBatchOrderUri
+	body, _, err := client.HttpRequest(http.MethodPost, uri, payload)
+	httpRequestTime := time.Now()
+	if err != nil {
+		log.Errorf("okx post /api/v5/trade/cancel-batch-orders err: %v", err)
+		return nil, err
+	}
+	response := new(CancelOrderResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		log.Errorf("okx post /api/v5/trade/cancel-batch-orders err 数据解析失败:%v", err)
+		return nil, err
+	}
+	if len(response.Data) == 0 {
+		err := fmt.Errorf("ok post /api/v5/trade/cancel-batch-orders err: %v", response)
+		return nil, err
+	}
+
+	result := make([]*types.OrderResult, 0)
+	var symbol string
+	if len(orders) > 0 {
+		symbol = orders[0].Symbol
+	}
+	for _, item := range response.Data {
+		info := cancelOrderTransform(symbol, item)
+		result = append(result, info)
+	}
+
+	log.Infof("HTTP cost time: %v", httpRequestTime.Sub(startTime))
+	return result, nil
+}
+
+func formCancelRequest(order *types.Order) map[string]interface{} {
+	result := map[string]interface{}{
+		"instId":  Symbol2OkInstId(order.Symbol),
+		"ordId":   order.OrderID,
+		"clOrdId": order.ClientID,
+	}
+	return result
+}
+
+func cancelOrderTransform(symbol string, info *CancelOrderResult) *types.OrderResult {
 	var result types.OrderResult
 	if info.SCode == "0" {
 		result.IsSuccess = true

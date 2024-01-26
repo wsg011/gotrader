@@ -91,6 +91,10 @@ func (okx *OkxV5Exchange) CreateBatchOrders(orders []*types.Order) ([]*types.Ord
 	return okx.restClient.CreateBatchOrders(orders)
 }
 
+func (okx *OkxV5Exchange) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	return okx.restClient.CancelBatchOrders(orders)
+}
+
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
 	if okx.wsClient == nil {
 		return fmt.Errorf("pubWsClient is nil")

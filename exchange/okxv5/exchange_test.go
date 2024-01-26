@@ -51,15 +51,16 @@ func TestFetchTickers(t *testing.T) {
 
 func TestCreateBatchOrders(t *testing.T) {
 	now := time.Now()
+	orderNum := 3
 	// 5 合约 order
 	orders := make([]*types.Order, 0)
-	for i := 0; i < 5; i++ {
+	for i := 0; i < orderNum; i++ {
 		price := askPrice + 0.01*float64(i+1)
 		orderinfo := &types.Order{
 			Symbol:       symbol,
 			Side:         constant.OrderSell,
 			Type:         constant.Limit,
-			ClientID:     "",
+			ClientID:     utils.RandomString(32),
 			Price:        utils.FormatFloat(price, 3),
 			OrigQty:      "1",
 			ExchangeType: exchange.exchangeType,
@@ -70,13 +71,13 @@ func TestCreateBatchOrders(t *testing.T) {
 		// t.Logf("create order %v", orderinfo)
 	}
 	// 5 现货 order
-	for i := 0; i < 5; i++ {
+	for i := 0; i < orderNum; i++ {
 		price := bidPrice - 0.01*float64(i+1)
 		orderinfo := &types.Order{
 			Symbol:       hedgeSymbol,
 			Side:         constant.OrderBuy,
 			Type:         constant.Limit,
-			ClientID:     "",
+			ClientID:     utils.RandomString(32),
 			Price:        utils.FormatFloat(price, 3),
 			OrigQty:      "1",
 			ExchangeType: exchange.exchangeType,
@@ -91,8 +92,18 @@ func TestCreateBatchOrders(t *testing.T) {
 	if err != nil {
 		t.Errorf("CreateBatchOrders error: %s", err)
 	}
+
 	for _, orderRes := range result {
 		t.Logf("orderRes %v", orderRes)
+	}
+
+	time.Sleep(5 * time.Second)
+	cancelResult, err := exchange.CancelBatchOrders(orders)
+	if err != nil {
+		t.Errorf("CancelBatchOrders err %s", err)
+	}
+	for _, order := range cancelResult {
+		t.Logf("cance orderRes %v", order)
 	}
 
 }
