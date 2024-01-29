@@ -50,7 +50,11 @@ func main() {
 		}
 
 	}
-	params := &types.ExchangeParameters{}
+	params := &types.ExchangeParameters{
+		AccessKey:  "5cf85d68-213c-4d42-8265-7ace3cf55694",
+		SecretKey:  "F05B2DDF1F299C8060C810C0EB1DBC30",
+		Passphrase: "I/6Ad2qolM05Lh",
+	}
 	exchange := okxv5.NewOkxV5Swap(params)
 	symbols := []string{"APE_USDT", "APE_USDT_SWAP"}
 	err := exchange.SubscribeBookTicker(symbols, onBookTickerHandle)
@@ -58,5 +62,18 @@ func main() {
 		log.Errorf("SubscribeBookticker err %s", err)
 		return
 	}
+
+	onOrdersHandle := func(orders []*types.Order) {
+		for _, order := range orders {
+			log.Infof("order %+v", order)
+		}
+	}
+	time.Sleep(time.Second)
+	err = exchange.SubscribeOrders([]string{"APE_USDT_SWAP"}, onOrdersHandle)
+	if err != nil {
+		log.Errorf("SubscribeOrders err %s", err)
+		return
+	}
+
 	select {}
 }
