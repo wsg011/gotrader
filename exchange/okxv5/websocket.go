@@ -3,13 +3,14 @@ package okxv5
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/bytedance/sonic"
 )
@@ -97,13 +98,14 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 
 	if dat.Event == "login" {
 		log.WithField("Event", dat.Event).Info("ok login success")
-
 		return
 	}
 
 	switch dat.Arg.Channel {
 	case "bbo-tbt":
 		ok.onBboTbtRecv(dat.Arg.InstId, dat.Data)
+	case "orders":
+		ok.onOrders(dat.Arg.InstId, dat.Data)
 	default:
 		log.WithField("dat", string(dat.Data)).Warn("unknown ok message")
 	}
@@ -127,6 +129,7 @@ func (ok *OkImp) Login(cli *ws.WsClient) {
 
 	// 发送请求
 	cli.Write(okxReq)
+	log.Infof("okx login")
 }
 
 func (ok *OkImp) onBboTbtRecv(instId string, dat json.RawMessage) {
@@ -180,3 +183,98 @@ func (ok *OkImp) onBboTbtRecv(instId string, dat json.RawMessage) {
 
 	ok.rspHandle(evt)
 }
+
+func (ok *OkImp) onOrders(instId string, dat json.RawMessage) {
+	type Order struct {
+		Symbol         string `json:"instId"`
+		OrderType      string `json:"ordType"`
+		OrderID        string `json:"ordId"`
+		ClientID       string `json:"clOrdId"`
+		Side           string `json:"side"`
+		Price          string `json:"px"`
+		Quantity       string `json:"sz"`
+		ExecutedQty    string `json:"accFillSz"`
+		ExecutedAmount string `json:"fillNotionalUsd"`
+		AvgPrice       string `json:"avgPx"`
+		Fee            string `json:"fee"`
+		Status         string `json:"state"`
+		CreateAt       string `json:"cTime"`
+		UpdateAt       string `json:"uTime"`
+	}
+
+	var orders []Order
+	if err := sonic.Unmarshal(dat, &orders); err != nil {
+		log.WithError(err).Error("unmarshal ok tbt failed")
+		return
+	}
+
+	var result []*types.Order
+	for _, ord := range orders {
+		orderSide := Okx2Side[ord.OrderType]
+		orderType := Okx2Type[ord.OrderType]
+		orderSatus := Okex2Status[ord.Status]
+		evt := &types.Order{
+			Symbol:      OkInstId2Symbol(ord.Symbol), // 假设这是一个转换函数
+			Type:        convertOrderType(orderType), // 假设可以直接转换
+			OrderID:     ord.OrderID,
+			ClientID:    ord.ClientID,
+			Side:        convertOrderSide(orderSide), // 假设可以直接转换
+			Price:       ord.Price,
+			OrigQty:     ord.Quantity,
+			ExecutedQty: ord.ExecutedQty,
+			AvgPrice:    ord.AvgPrice,
+			Fee:         ord.Fee,
+			Status:      orderSatus,                                      // 假设可以直接转换
+			CreateAt:    time.Now().UnixNano() / int64(time.Millisecond), // 示例：使用当前时间的毫秒表示
+			UpdateAt:    time.Now().UnixNano() / int64(time.Millisecond),
+		}
+		result = append(result, evt)
+
+	}
+	ok.rspHandle(result)
+}
+
+func convertOrderSide(side string) constant.OrderSide {
+	switch side {
+	case "BUY":
+		return constant.OrderBuy
+	case "SELL":
+		return constant.OrderSell
+	default:
+		log.WithField("side", side).Warn("unknown okx order side")
+		return constant.OrderSell
+	}
+}
+
+func convertOrderType(typ string) constant.OrderType {
+	switch typ {
+	case "MARKET":
+		return constant.Market
+	case "GTC":
+		return constant.GTC
+	case "IOC":
+		return constant.IOC
+	case "FOK":
+		return constant.FOK
+	case "POST_ONLY":
+		return constant.PostOnly
+	default:
+		return constant.Limit // 假设默认为Limit类型
+	}
+}
+
+// func convertOrderStatus(std string) constant.OrderStatus {
+// 	// 订单状态
+// 	// canceled：撤单成功
+// 	// live：等待成交
+// 	// partially_filled：部分成交
+// 	// filled：完全成交
+// 	switch std {
+// 	case "OPEN":
+// 		return constant.OrderOpen
+// 	case "CLOSED":
+// 		return constant.OrderClosed
+// 	default:
+// 		return constant.OrderOpen
+// 	}
+// }

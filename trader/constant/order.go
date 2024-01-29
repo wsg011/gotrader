@@ -70,6 +70,8 @@ func (s OrderStatus) Name() string {
 	switch s {
 	case OrderSubmit:
 		return "submit"
+	case OrderOpen:
+		return "open"
 	case OrderComfirmed:
 		return "confirmed"
 	case OrderPartialFilled:
@@ -95,6 +97,7 @@ func (s OrderStatus) IsOver() bool {
 
 const (
 	OrderSubmit OrderStatus = iota
+	OrderOpen
 	OrderComfirmed
 	OrderPartialFilled
 	OrderFilled

@@ -12,12 +12,13 @@ import (
 type OkxV5Exchange struct {
 	exchangeType constant.ExchangeType
 
-	restClient *RestClient
-	wsClient   *ws.WsClient
+	restClient  *RestClient
+	pubWsClient *ws.WsClient
+	priWsClient *ws.WsClient
 
 	// callbacks
 	onBooktickerCallback func(*types.BookTicker)
-	onOrderCallback      func(*types.Order)
+	onOrderCallback      func([]*types.Order)
 }
 
 func NewOkxV5Swap(params *types.ExchangeParameters) *OkxV5Exchange {
@@ -31,12 +32,23 @@ func NewOkxV5Swap(params *types.ExchangeParameters) *OkxV5Exchange {
 		exchangeType: constant.OkxV5Swap,
 		restClient:   client,
 	}
+	// pubWsClient
 	pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
 	if err := pubWsClient.Dial(ws.Connect); err != nil {
 		log.Errorf("pubWsClient.Dial err %s", err)
 	} else {
-		exchange.wsClient = pubWsClient
+		exchange.pubWsClient = pubWsClient
 		log.Infof("pubWsClient.Dial success")
+	}
+	// priWsClient
+	if len(apiKey) > 0 {
+		priWsClient := NewOkPriWsClient(apiKey, secretKey, passPhrase, exchange.OnPriWsHandle)
+		if err := priWsClient.Dial(ws.Connect); err != nil {
+			log.Errorf("priWsClient.Dial err %s", err)
+		} else {
+			exchange.priWsClient = priWsClient
+			log.Infof("priWsClient.Dial success")
+		}
 	}
 	return exchange
 }
@@ -56,8 +68,19 @@ func NewOkxV5Spot(params *types.ExchangeParameters) *OkxV5Exchange {
 	if err := pubWsClient.Dial(ws.Connect); err != nil {
 		log.Errorf("pubWsClient.Dial err %s", err)
 	} else {
-		exchange.wsClient = pubWsClient
+		exchange.pubWsClient = pubWsClient
 		log.Infof("pubWsClient.Dial success")
+	}
+
+	if len(apiKey) > 0 {
+		priWsClient := NewOkPriWsClient(apiKey, secretKey, passPhrase, exchange.OnPriWsHandle)
+		if err := priWsClient.Dial(ws.Connect); err != nil {
+			log.Errorf("priWsClient.Dial err %s", err)
+
+		} else {
+			exchange.priWsClient = priWsClient
+			log.Infof("priWsClient.Dial success")
+		}
 	}
 	return exchange
 }
@@ -96,18 +119,16 @@ func (okx *OkxV5Exchange) CancelBatchOrders(orders []*types.Order) ([]*types.Ord
 }
 
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
-	if okx.wsClient == nil {
-		return fmt.Errorf("pubWsClient is nil")
-	}
-	if err := okx.wsClient.Write(params); err != nil {
-		return fmt.Errorf("Subscribe err: %s", err)
-	}
+	// if okx.puWsClient == nil {
+	// 	return fmt.Errorf("pubWsClient is nil")
+	// }
+	// if err := okx.puWsClient.Write(params); err != nil {
+	// 	return fmt.Errorf("Subscribe err: %s", err)
+	// }
 	return nil
 }
 
 func (okx *OkxV5Exchange) SubscribeBookTicker(symbols []string, callback func(*types.BookTicker)) error {
-	okx.onBooktickerCallback = callback
-
 	for _, symbol := range symbols {
 		params := map[string]interface{}{
 			"op": "subscribe",
@@ -118,33 +139,52 @@ func (okx *OkxV5Exchange) SubscribeBookTicker(symbols []string, callback func(*t
 				},
 			},
 		}
-		if okx.wsClient == nil {
+		if okx.pubWsClient == nil {
 			return fmt.Errorf("pubWsClient is nil")
 		}
-		if err := okx.wsClient.Write(params); err != nil {
+		if err := okx.pubWsClient.Write(params); err != nil {
 			return fmt.Errorf("Subscribe err: %s", err)
 		}
 		time.Sleep(200 * time.Microsecond)
 	}
+
+	okx.onBooktickerCallback = callback
 	return nil
 }
 
 // SubscribeOrder 订阅订单频道
-func (okx *OkxV5Exchange) SubscribeOrder(symbols []string, callback func(*types.Order)) error {
-	okx.onOrderCallback = callback
+func (okx *OkxV5Exchange) SubscribeOrders(symbols []string, callback func(orders []*types.Order)) error {
+	/***
+	{
+		"op": "subscribe",
+		"args": [{
+			"channel": "orders",
+			"instType": "FUTURES",
+			"instFamily": "BTC-USD"
+		}]
+	}
+	***/
+
+	// 构建订阅请求的参数
+	args := make([]map[string]string, 0)
+	for _, symbol := range symbols {
+		arg := map[string]string{
+			"channel":  "orders",
+			"instType": "SWAP",                  // 这里假设所有的symbol都是SWAP类型，根据需要调整
+			"instId":   Symbol2OkInstId(symbol), // 为每个symbol设置instFamily
+		}
+		args = append(args, arg)
+	}
 
 	params := map[string]interface{}{
-		"op": "subscribe",
-		"args": []map[string]string{
-			{
-				"channel":  "orders",
-				"instType": "FUTURES",
-			},
-		},
+		"op":   "subscribe",
+		"args": args,
 	}
-	if err := okx.wsClient.Write(params); err != nil {
+	if err := okx.priWsClient.Write(params); err != nil {
 		return fmt.Errorf("Subscribe err: %s", err)
 	}
+
+	okx.onOrderCallback = callback
 	return nil
 }
 
@@ -164,5 +204,17 @@ func (okx *OkxV5Exchange) OnPubWsHandle(data interface{}) {
 	default:
 		log.Errorf("Unknown type %s", v)
 	}
+}
 
+func (okx *OkxV5Exchange) OnPriWsHandle(data interface{}) {
+	switch v := data.(type) {
+	case []*types.Order:
+		if okx.onOrderCallback != nil {
+			okx.onOrderCallback(v)
+		} else {
+			log.Errorf("onOrder Callback not set")
+		}
+	default:
+		log.Errorf("Unknown type %s", v)
+	}
 }

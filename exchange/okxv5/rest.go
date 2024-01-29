@@ -52,7 +52,6 @@ func (client *RestClient) HttpRequest(method string, uri string, payload []byte)
 		"OK-ACCESS-TIMESTAMP":  currentTime,
 		"OK-ACCESS-PASSPHRASE": client.passPhrase,
 	}
-	log.Infof("head %s", head)
 	args := &httpx.Request{
 		Url:    url,
 		Head:   head,

@@ -53,6 +53,22 @@ var (
 		constant.IOC.Name():      "ioc",
 		constant.PostOnly.Name(): "post_only",
 	}
+
+	Okx2Type = map[string]string{
+		"limit":     constant.Limit.Name(),
+		"market":    constant.Market.Name(),
+		"gtc":       constant.GTC.Name(),
+		"fok":       constant.FOK.Name(),
+		"ioc":       constant.IOC.Name(),
+		"post_only": constant.PostOnly.Name(),
+	}
+
+	Okex2Status = map[string]constant.OrderStatus{
+		"live":             constant.OrderOpen,
+		"partially_filled": constant.OrderPartialFilled,
+		"canceled":         constant.OrderCanceled,
+		"filled":           constant.OrderFilled,
+	}
 )
 
 const (
