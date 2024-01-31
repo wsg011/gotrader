@@ -114,6 +114,10 @@ func (okx *OkxV5Exchange) FetchBalance() (*types.Assets, error) {
 	return okx.restClient.FetchBalance()
 }
 
+func (okx *OkxV5Exchange) FetchPositons() ([]*types.Position, error) {
+	return okx.restClient.FetchPositons()
+}
+
 func (okx *OkxV5Exchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 	return okx.restClient.CreateBatchOrders(orders)
 }

@@ -69,6 +69,11 @@ var (
 		"canceled":         constant.OrderCanceled,
 		"filled":           constant.OrderFilled,
 	}
+
+	Okex2MarginMode = map[string]string{
+		"isolated": "FIXED",
+		"cross":    "CROSSED",
+	}
 )
 
 const (
@@ -80,6 +85,7 @@ const (
 	TickersRest             = "/api/v5/market/tickers?%s"
 	TradeRest               = "/api/v5/market/trades?%s"
 	FetchBalanceUri         = "/api/v5/account/balance"
+	FetchPositionsUri       = "/api/v5/account/positions"
 	CreateSingleOrderUri    = "/api/v5/trade/order"
 	CreateBatchOrderUri     = "/api/v5/trade/batch-orders"
 	CancelSingleOrderUri    = "/api/v5/trade/cancel-order"

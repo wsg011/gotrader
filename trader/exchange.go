@@ -16,6 +16,7 @@ type Exchange interface {
 
 	// rest Private
 	FetchBalance() (*types.Assets, error)
+	FetchPositons() ([]*types.Position, error)
 	CreateBatchOrders([]*types.Order) ([]*types.OrderResult, error)
 	CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error)
 

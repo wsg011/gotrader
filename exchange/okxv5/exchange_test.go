@@ -60,6 +60,20 @@ func TestFetchSymbols(t *testing.T) {
 	}
 }
 
+func TestFetchPosition(t *testing.T) {
+	resp, err := exchange.FetchPositons()
+	if err != nil {
+		t.Fatalf("FetchPositons err: %s", err)
+	}
+
+	for _, position := range resp {
+		if position.Symbol == symbol {
+			t.Logf("symbol position %v", position.Position)
+		}
+		t.Logf("symbol %s position %v", position.Symbol, position.Position)
+	}
+}
+
 // func TestCreateBatchOrders(t *testing.T) {
 // 	now := time.Now()
 // 	orderNum := 3
