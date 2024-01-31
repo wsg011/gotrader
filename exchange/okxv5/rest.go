@@ -17,9 +17,10 @@ import (
 var httpClient = httpx.NewClient()
 
 type RestClient struct {
-	apiKey     string
-	secretKey  string
-	passPhrase string
+	apiKey       string
+	secretKey    string
+	passPhrase   string
+	exchangeType constant.ExchangeType
 }
 
 type BaseOkRsp struct {
@@ -27,11 +28,12 @@ type BaseOkRsp struct {
 	Msg  string `json:"msg"`
 }
 
-func NewRestClient(apiKey, secretKey, passPhrase string) *RestClient {
+func NewRestClient(apiKey, secretKey, passPhrase string, exchangeType constant.ExchangeType) *RestClient {
 	client := &RestClient{
-		apiKey:     apiKey,
-		secretKey:  secretKey,
-		passPhrase: passPhrase,
+		apiKey:       apiKey,
+		secretKey:    secretKey,
+		passPhrase:   passPhrase,
+		exchangeType: exchangeType,
 	}
 	return client
 }
