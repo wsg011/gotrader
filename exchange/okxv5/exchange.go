@@ -27,7 +27,7 @@ func NewOkxV5Swap(params *types.ExchangeParameters) *OkxV5Exchange {
 	passPhrase := params.Passphrase
 
 	// new client
-	client := NewRestClient(apiKey, secretKey, passPhrase)
+	client := NewRestClient(apiKey, secretKey, passPhrase, constant.OkxV5Swap)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Swap,
 		restClient:   client,
@@ -59,7 +59,7 @@ func NewOkxV5Spot(params *types.ExchangeParameters) *OkxV5Exchange {
 	passPhrase := params.Passphrase
 
 	// new client
-	client := NewRestClient(apiKey, secretKey, passPhrase)
+	client := NewRestClient(apiKey, secretKey, passPhrase, constant.OkxV5Spot)
 	exchange := &OkxV5Exchange{
 		exchangeType: constant.OkxV5Spot,
 		restClient:   client,
@@ -104,6 +104,10 @@ func (okx *OkxV5Exchange) FetchKline(symbol string, interval string, limit int64
 
 func (okx *OkxV5Exchange) FetchFundingRate(symbol string) (*types.FundingRate, error) {
 	return okx.restClient.FetchFundingRate(symbol)
+}
+
+func (okx *OkxV5Exchange) FetchSymbols() ([]*types.SymbolInfo, error) {
+	return okx.restClient.FetchSymbols()
 }
 
 func (okx *OkxV5Exchange) FetchBalance() (*types.Assets, error) {

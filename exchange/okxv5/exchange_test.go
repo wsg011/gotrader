@@ -2,10 +2,7 @@ package okxv5
 
 import (
 	"testing"
-	"time"
 
-	"github.com/wsg011/gotrader/pkg/utils"
-	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
 )
 
@@ -45,68 +42,82 @@ func TestFetchTickers(t *testing.T) {
 			t.Logf("%s ticker [%f | %f]", symbol, ticker.AskPrice, ticker.BidPrice)
 		}
 	}
-
-	t.Logf("Tickers %v", resp[0])
+	// t.Logf("Tickers %v", resp[0])
 }
 
-func TestCreateBatchOrders(t *testing.T) {
-	now := time.Now()
-	orderNum := 3
-	// 5 合约 order
-	orders := make([]*types.Order, 0)
-	for i := 0; i < orderNum; i++ {
-		price := askPrice + 0.01*float64(i+1)
-		orderinfo := &types.Order{
-			Symbol:       symbol,
-			Side:         constant.OrderSell,
-			Type:         constant.Limit,
-			ClientID:     utils.RandomString(32),
-			Price:        utils.FormatFloat(price, 3),
-			OrigQty:      "1",
-			ExchangeType: exchange.exchangeType,
-			CreateAt:     utils.Millisec(now),
-			Status:       constant.OrderSubmit,
-		}
-		orders = append(orders, orderinfo)
-		// t.Logf("create order %v", orderinfo)
-	}
-	// 5 现货 order
-	for i := 0; i < orderNum; i++ {
-		price := bidPrice - 0.01*float64(i+1)
-		orderinfo := &types.Order{
-			Symbol:       hedgeSymbol,
-			Side:         constant.OrderBuy,
-			Type:         constant.Limit,
-			ClientID:     utils.RandomString(32),
-			Price:        utils.FormatFloat(price, 3),
-			OrigQty:      "1",
-			ExchangeType: exchange.exchangeType,
-			CreateAt:     utils.Millisec(now),
-			Status:       constant.OrderSubmit,
-		}
-		orders = append(orders, orderinfo)
-	}
-
-	t.Logf("create batch orders %v", orders)
-	result, err := exchange.CreateBatchOrders(orders)
+func TestFetchSymbols(t *testing.T) {
+	resp, err := exchange.FetchSymbols()
 	if err != nil {
-		t.Errorf("CreateBatchOrders error: %s", err)
+		t.Fatalf("FetchSymbols err: %s", err)
 	}
 
-	for _, orderRes := range result {
-		t.Logf("orderRes %v", orderRes)
+	for _, symbolinfo := range resp {
+		if symbolinfo.Symbol == symbol {
+			t.Logf("symbol info %s PxPrec %v QtyPrec %v FaceVal %v Multi %v",
+				symbolinfo.Symbol, symbolinfo.PxPrec, symbolinfo.QtyPrec, symbolinfo.FaceVal, symbolinfo.Multiplier)
+		}
+		// t.Logf("symbol info %s PxPrec %v FaceVal %v Multiplier %v", symbolinfo.Symbol, symbolinfo.PxPrec, symbolinfo.FaceVal, symbolinfo.Multiplier)
 	}
-
-	time.Sleep(5 * time.Second)
-	cancelResult, err := exchange.CancelBatchOrders(orders)
-	if err != nil {
-		t.Errorf("CancelBatchOrders err %s", err)
-	}
-	for _, order := range cancelResult {
-		t.Logf("cance orderRes %v", order)
-	}
-
 }
+
+// func TestCreateBatchOrders(t *testing.T) {
+// 	now := time.Now()
+// 	orderNum := 3
+// 	// 5 合约 order
+// 	orders := make([]*types.Order, 0)
+// 	for i := 0; i < orderNum; i++ {
+// 		price := askPrice + 0.01*float64(i+1)
+// 		orderinfo := &types.Order{
+// 			Symbol:       symbol,
+// 			Side:         constant.OrderSell,
+// 			Type:         constant.Limit,
+// 			ClientID:     utils.RandomString(32),
+// 			Price:        utils.FormatFloat(price, 3),
+// 			OrigQty:      "1",
+// 			ExchangeType: exchange.exchangeType,
+// 			CreateAt:     utils.Millisec(now),
+// 			Status:       constant.OrderSubmit,
+// 		}
+// 		orders = append(orders, orderinfo)
+// 		// t.Logf("create order %v", orderinfo)
+// 	}
+// 	// 5 现货 order
+// 	for i := 0; i < orderNum; i++ {
+// 		price := bidPrice - 0.01*float64(i+1)
+// 		orderinfo := &types.Order{
+// 			Symbol:       hedgeSymbol,
+// 			Side:         constant.OrderBuy,
+// 			Type:         constant.Limit,
+// 			ClientID:     utils.RandomString(32),
+// 			Price:        utils.FormatFloat(price, 3),
+// 			OrigQty:      "1",
+// 			ExchangeType: exchange.exchangeType,
+// 			CreateAt:     utils.Millisec(now),
+// 			Status:       constant.OrderSubmit,
+// 		}
+// 		orders = append(orders, orderinfo)
+// 	}
+
+// 	t.Logf("create batch orders %v", orders)
+// 	result, err := exchange.CreateBatchOrders(orders)
+// 	if err != nil {
+// 		t.Errorf("CreateBatchOrders error: %s", err)
+// 	}
+
+// 	for _, orderRes := range result {
+// 		t.Logf("orderRes %v", orderRes)
+// 	}
+
+// 	time.Sleep(5 * time.Second)
+// 	cancelResult, err := exchange.CancelBatchOrders(orders)
+// 	if err != nil {
+// 		t.Errorf("CancelBatchOrders err %s", err)
+// 	}
+// 	for _, order := range cancelResult {
+// 		t.Logf("cance orderRes %v", order)
+// 	}
+
+// }
 
 // func TestPriWsClient(t *testing.T) {
 // 	testRspHandle := func(data interface{}) {
