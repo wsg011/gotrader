@@ -210,7 +210,7 @@ func (ok *OkImp) onOrders(instId string, dat json.RawMessage) {
 
 	var result []*types.Order
 	for _, ord := range orders {
-		orderSide := Okx2Side[ord.OrderType]
+		orderSide := Okx2Side[ord.Side]
 		orderType := Okx2Type[ord.OrderType]
 		orderSatus := Okex2Status[ord.Status]
 		evt := &types.Order{
@@ -259,6 +259,7 @@ func convertOrderType(typ string) constant.OrderType {
 	case "POST_ONLY":
 		return constant.PostOnly
 	default:
+		log.WithField("typ", typ).Warn("unknown okx order typ")
 		return constant.Limit // 假设默认为Limit类型
 	}
 }
