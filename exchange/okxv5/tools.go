@@ -18,8 +18,8 @@ var (
 	PriWsUrl = "wss://ws.okx.com:8443/ws/v5/private"
 
 	OkxOrderSide = map[string]string{
-		constant.OrderBuy.Name():   "LONG",
-		constant.OrderSell.Name():  "SHORT",
+		constant.OrderBuy.Name():   "BUY",
+		constant.OrderSell.Name():  "SELL",
 		constant.Long.Name():       "LONG",
 		constant.Short.Name():      "SHORT",
 		constant.CloseLong.Name():  "CLOSE_LONG",
@@ -28,13 +28,13 @@ var (
 	}
 
 	Side2Okx = map[string]string{
-		constant.Long.Name():  "buy",
-		constant.Short.Name(): "sell",
+		constant.OrderBuy.Name():  "buy",
+		constant.OrderSell.Name(): "sell",
 	}
 
 	Okx2Side = map[string]string{
-		"buy":  constant.Long.Name(),
-		"sell": constant.Short.Name(),
+		"buy":  constant.OrderBuy.Name(),
+		"sell": constant.OrderSell.Name(),
 	}
 
 	OkxOrderType = map[string]string{
