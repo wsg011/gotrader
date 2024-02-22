@@ -106,8 +106,10 @@ func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
 		ok.onBboTbtRecv(dat.Arg.InstId, dat.Data)
 	case "orders":
 		ok.onOrders(dat.Arg.InstId, dat.Data)
+	case "batch-orders":
+		log.Infof("batch-orders %+v", dat.Data)
 	default:
-		log.WithField("dat", string(dat.Data)).Warn("unknown ok message")
+		log.WithField("dat", string(dat.Data)).Warn("unknown ok message", dat.Arg.Channel)
 	}
 }
 
@@ -213,6 +215,12 @@ func (ok *OkImp) onOrders(instId string, dat json.RawMessage) {
 		orderSide := Okx2Side[ord.Side]
 		orderType := Okx2Type[ord.OrderType]
 		orderSatus := Okex2Status[ord.Status]
+		createAt, err := strconv.ParseInt(ord.CreateAt, 10, 64)
+		if err != nil {
+			log.WithError(err).Error("ParseInt CreateAt failed")
+			return
+		}
+
 		evt := &types.Order{
 			Symbol:      OkInstId2Symbol(ord.Symbol), // 假设这是一个转换函数
 			Type:        convertOrderType(orderType), // 假设可以直接转换
@@ -224,8 +232,8 @@ func (ok *OkImp) onOrders(instId string, dat json.RawMessage) {
 			ExecutedQty: ord.ExecutedQty,
 			AvgPrice:    ord.AvgPrice,
 			Fee:         ord.Fee,
-			Status:      orderSatus,                                      // 假设可以直接转换
-			CreateAt:    time.Now().UnixNano() / int64(time.Millisecond), // 示例：使用当前时间的毫秒表示
+			Status:      orderSatus, // 假设可以直接转换
+			CreateAt:    createAt,   // 示例：使用当前时间的毫秒表示
 			UpdateAt:    time.Now().UnixNano() / int64(time.Millisecond),
 		}
 		result = append(result, evt)
@@ -248,6 +256,8 @@ func convertOrderSide(side string) constant.OrderSide {
 
 func convertOrderType(typ string) constant.OrderType {
 	switch typ {
+	case "LIMIT":
+		return constant.Limit
 	case "MARKET":
 		return constant.Market
 	case "GTC":
