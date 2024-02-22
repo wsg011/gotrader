@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -77,31 +78,32 @@ var (
 )
 
 const (
-	FetchKlineUri           = "/api/v5/market/candles?%s"
-	OrderBookRest           = "/api/v5/market/books?%s"
-	SymbolsRest             = "/api/v5/public/instruments"
-	FetchFundingRateUri     = "/api/v5/public/funding-rate"
-	TickerRest              = "/api/v5/market/ticker?%s"
-	TickersRest             = "/api/v5/market/tickers?%s"
-	TradeRest               = "/api/v5/market/trades?%s"
-	FetchBalanceUri         = "/api/v5/account/balance"
-	FetchPositionsUri       = "/api/v5/account/positions"
-	CreateSingleOrderUri    = "/api/v5/trade/order"
-	CreateBatchOrderUri     = "/api/v5/trade/batch-orders"
-	CancelSingleOrderUri    = "/api/v5/trade/cancel-order"
-	CancelBatchOrderUri     = "/api/v5/trade/cancel-batch-orders"
-	FetchOpenOrderUri       = "/api/v5/trade/orders-pending"
-	FetchOrderWithIdUri     = "/api/v5/trade/order"
-	FetchOrderDefault       = "/api/v5/trade/orders-history-archive"
-	FetchUserTradesUri      = "/api/v5/trade/fills-history"
-	PrivateTransferUri      = "/api/v5/asset/transfer"
-	PrivateCurrenciesUri    = "/api/v5/asset/currencies"
-	PrivateWithDrawUri      = "/api/v5/asset/withdrawal"
-	FetchDepositHistoryUri  = "/api/v5/asset/deposit-history"
-	FetchWithDrawHistoryUri = "/api/v5/asset/withdrawal-history"
-	PrivateDepositAddrUri   = "/api/v5/asset/deposit-address"
-	FetchTransferStateUri   = "/api/v5/asset/transfer-state"
-	TransferProcessing      = 58124 //提币处理中返回此code
+	FetchKlineUri              = "/api/v5/market/candles?%s"
+	OrderBookRest              = "/api/v5/market/books?%s"
+	SymbolsRest                = "/api/v5/public/instruments"
+	FetchFundingRateUri        = "/api/v5/public/funding-rate"
+	FetchFundingRateHistoryUri = "/api/v5/public/funding-rate-history"
+	TickerRest                 = "/api/v5/market/ticker?%s"
+	TickersRest                = "/api/v5/market/tickers?%s"
+	TradeRest                  = "/api/v5/market/trades?%s"
+	FetchBalanceUri            = "/api/v5/account/balance"
+	FetchPositionsUri          = "/api/v5/account/positions"
+	CreateSingleOrderUri       = "/api/v5/trade/order"
+	CreateBatchOrderUri        = "/api/v5/trade/batch-orders"
+	CancelSingleOrderUri       = "/api/v5/trade/cancel-order"
+	CancelBatchOrderUri        = "/api/v5/trade/cancel-batch-orders"
+	FetchOpenOrderUri          = "/api/v5/trade/orders-pending"
+	FetchOrderWithIdUri        = "/api/v5/trade/order"
+	FetchOrderDefault          = "/api/v5/trade/orders-history-archive"
+	FetchUserTradesUri         = "/api/v5/trade/fills-history"
+	PrivateTransferUri         = "/api/v5/asset/transfer"
+	PrivateCurrenciesUri       = "/api/v5/asset/currencies"
+	PrivateWithDrawUri         = "/api/v5/asset/withdrawal"
+	FetchDepositHistoryUri     = "/api/v5/asset/deposit-history"
+	FetchWithDrawHistoryUri    = "/api/v5/asset/withdrawal-history"
+	PrivateDepositAddrUri      = "/api/v5/asset/deposit-address"
+	FetchTransferStateUri      = "/api/v5/asset/transfer-state"
+	TransferProcessing         = 58124 //提币处理中返回此code
 )
 
 // IsoTime eg: 2018-03-16T18:02:48.284Z
@@ -153,4 +155,18 @@ func generateOkxSignature(timestamp string, secretKey string) string {
 	signature := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
 	return signature
+}
+
+func parseStringToFloat(s string) (float64, error) {
+	if s == "" {
+		return 0, nil
+	}
+	return strconv.ParseFloat(s, 64)
+}
+
+func parseStringToInt(s string) (int64, error) {
+	if s == "" {
+		return 0, nil
+	}
+	return strconv.ParseInt(s, 10, 64)
 }

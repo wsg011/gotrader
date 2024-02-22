@@ -2,7 +2,11 @@ package okxv5
 
 import (
 	"testing"
+	"time"
 
+	"github.com/montanaflynn/stats"
+	"github.com/wsg011/gotrader/pkg/utils"
+	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
 )
 
@@ -60,19 +64,34 @@ func TestFetchSymbols(t *testing.T) {
 	}
 }
 
-func TestFetchPosition(t *testing.T) {
-	resp, err := exchange.FetchPositons()
+func TestFetchFundingRate(t *testing.T) {
+	resp, err := exchange.FetchFundingRateHistory(symbol, 10)
 	if err != nil {
-		t.Fatalf("FetchPositons err: %s", err)
+		t.Fatalf("FetchFundingRateHistory err: %s", err)
 	}
 
-	for _, position := range resp {
-		if position.Symbol == symbol {
-			t.Logf("symbol position %v", position.Position)
-		}
-		t.Logf("symbol %s position %v", position.Symbol, position.Position)
+	fundingRates := make([]float64, 0)
+	for i := 1; i < len(resp); i++ {
+		fr := resp[i].FundingRate
+		fundingRates = append(fundingRates, fr)
 	}
+	mean, _ := stats.Mean(fundingRates)
+	t.Logf("funding rate history mean %v", mean)
 }
+
+// func TestFetchPosition(t *testing.T) {
+// 	resp, err := exchange.FetchPositons()
+// 	if err != nil {
+// 		t.Fatalf("FetchPositons err: %s", err)
+// 	}
+
+// 	for _, position := range resp {
+// 		if position.Symbol == symbol {
+// 			t.Logf("symbol position %v", position.Position)
+// 		}
+// 		t.Logf("symbol %s position %v", position.Symbol, position.Position)
+// 	}
+// }
 
 // func TestCreateBatchOrders(t *testing.T) {
 // 	now := time.Now()
@@ -133,31 +152,84 @@ func TestFetchPosition(t *testing.T) {
 
 // }
 
-// func TestPriWsClient(t *testing.T) {
-// 	testRspHandle := func(data interface{}) {
-// 		// t.Logf("testRspHandle data: %s", data)
-// 	}
-// 	okxWsClient := NewOkPriWsClient(apiKey, secretKey, passphrase, testRspHandle)
-// 	if err := okxWsClient.Dial(ws.Connect); err != nil {
-// 		t.Fatalf("Dial error: %s", err)
-// 	}
-// 	t.Log("Dial success")
-// 	time.Sleep(3 * time.Second)
+func TestCreateBatchOrdersWs(t *testing.T) {
+	var now time.Time
 
-// 	param := map[string]interface{}{
-// 		"op": "subscribe",
-// 		"args": []map[string]string{
-// 			{
-// 				"channel": "bbo-tbt",
-// 				"instId":  "BTC-USDT",
-// 			},
-// 		},
-// 	}
-// 	okxWsClient.Write(param)
+	// 订阅orders频道
+	onOrder := func(orders []*types.Order) {
+		costTime := time.Since(now)
+		t.Logf("本地下单 To 回报 %v", costTime)
+		for _, order := range orders {
+			// t.Logf("orderinfo %+v", order)
+			createAtTime := time.Unix(0, order.CreateAt*int64(time.Millisecond))
+			t.Logf("交易撮合 To 回报: %v\n", time.Since(createAtTime))
+		}
+	}
 
-// 	time.Sleep(3 * time.Second)
-// 	okxWsClient.Close()
-// }
+	err := exchange.SubscribeOrders([]string{hedgeSymbol, symbol}, onOrder)
+	if err != nil {
+		t.Fatalf("SubscribeOrders error %s", err)
+	}
+	time.Sleep(1 * time.Second)
+
+	for i := 0; i < 3; i++ {
+
+		// 下单
+		orderNum := 1
+		// 合约 order
+		orders := make([]*types.Order, 0)
+		for i := 0; i < orderNum; i++ {
+			price := askPrice + 0.01*float64(i+1)
+			orderinfo := &types.Order{
+				Symbol:       symbol,
+				Side:         constant.OrderSell,
+				Type:         constant.Limit,
+				ClientID:     utils.RandomString(32),
+				Price:        utils.FormatFloat(price, 3),
+				OrigQty:      "10",
+				ExchangeType: exchange.exchangeType,
+				CreateAt:     utils.Millisec(now),
+				Status:       constant.OrderSubmit,
+			}
+			orders = append(orders, orderinfo)
+			// t.Logf("create order %v", orderinfo)
+		}
+		// 现货 order
+		for i := 0; i < orderNum; i++ {
+			price := bidPrice - 0.01*float64(i+1)
+			orderinfo := &types.Order{
+				Symbol:       hedgeSymbol,
+				Side:         constant.OrderBuy,
+				Type:         constant.Limit,
+				ClientID:     utils.RandomString(32),
+				Price:        utils.FormatFloat(price, 3),
+				OrigQty:      "1",
+				ExchangeType: exchange.exchangeType,
+				CreateAt:     utils.Millisec(now),
+				Status:       constant.OrderSubmit,
+			}
+			orders = append(orders, orderinfo)
+		}
+
+		// t.Logf("create batch ws orders %v", orders)
+		// now = time.Now()
+		// err = exchange.CreateBatchOrdersWs(orders)
+		// if err != nil {
+		// 	t.Errorf("CreateBatchOrders error: %s", err)
+		// }
+
+		// time.Sleep(5 * time.Second)
+		// cancelResult, err := exchange.CancelBatchOrders(orders)
+		// if err != nil {
+		// 	t.Errorf("CancelBatchOrders err %s", err)
+		// }
+		// for _, order := range cancelResult {
+		// 	t.Logf("cance orderRes %v", order)
+		// }
+		// time.Sleep(5 * time.Second)
+	}
+
+}
 
 // func TestExchange(t *testing.T) {
 // 	params := &types.ExchangeParameters{

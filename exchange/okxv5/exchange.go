@@ -106,6 +106,10 @@ func (okx *OkxV5Exchange) FetchFundingRate(symbol string) (*types.FundingRate, e
 	return okx.restClient.FetchFundingRate(symbol)
 }
 
+func (okx *OkxV5Exchange) FetchFundingRateHistory(symbol string, limit int64) ([]*types.FundingRate, error) {
+	return okx.restClient.FetchFundingRateHistory(symbol, limit)
+}
+
 func (okx *OkxV5Exchange) FetchSymbols() ([]*types.SymbolInfo, error) {
 	return okx.restClient.FetchSymbols()
 }

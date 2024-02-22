@@ -12,6 +12,7 @@ type Exchange interface {
 	// rest Public
 	FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error)
 	FetchFundingRate(symbol string) (*types.FundingRate, error)
+	FetchFundingRateHistory(symbol string, limit int64) ([]*types.FundingRate, error)
 	FetchSymbols() ([]*types.SymbolInfo, error)
 
 	// rest Private
