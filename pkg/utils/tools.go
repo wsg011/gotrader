@@ -69,6 +69,10 @@ func UrlEncodeParamsByKeys(paramsDict map[string]interface{}, keys []string) str
 }
 
 func ParseInt(str string) (int64, error) {
+	if str == "" {
+		return 0, nil
+	}
+
 	numberInt, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
 		return 0, err
@@ -77,6 +81,10 @@ func ParseInt(str string) (int64, error) {
 }
 
 func ParseFloat(str string) (float64, error) {
+	if str == "" {
+		return 0, nil
+	}
+
 	numberFloat, err := strconv.ParseFloat(str, 64)
 	if err != nil {
 		return 0, err
