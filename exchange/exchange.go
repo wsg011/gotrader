@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+
 	"github.com/wsg011/gotrader/exchange/okxv5"
 	"github.com/wsg011/gotrader/trader"
 	"github.com/wsg011/gotrader/trader/constant"

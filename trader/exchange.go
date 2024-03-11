@@ -14,6 +14,7 @@ type Exchange interface {
 	FetchFundingRate(symbol string) (*types.FundingRate, error)
 	FetchFundingRateHistory(symbol string, limit int64) ([]*types.FundingRate, error)
 	FetchSymbols() ([]*types.SymbolInfo, error)
+	FetchTickers() ([]*types.Ticker, error)
 
 	// rest Private
 	FetchBalance() (*types.Assets, error)

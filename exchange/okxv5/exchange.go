@@ -94,7 +94,7 @@ func (okx *OkxV5Exchange) GetType() (typ constant.ExchangeType) {
 	return okx.exchangeType
 }
 
-func (okx *OkxV5Exchange) FetchTickers() ([]types.BookTicker, error) {
+func (okx *OkxV5Exchange) FetchTickers() ([]*types.Ticker, error) {
 	return okx.restClient.FetchTickers()
 }
 
