@@ -142,7 +142,7 @@ func positionTransform(response *PositionResponse) ([]*types.Position, error) {
 		}
 		info := &types.Position{
 			MarginMode:       Okex2MarginMode[item.MgnMode],
-			Symbol:           item.InstId,
+			Symbol:           OkInstId2Symbol(item.InstId),
 			LiquidationPx:    liquidationPx,
 			Position:         math.Abs(position),
 			FrozenPosition:   0,
