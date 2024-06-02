@@ -2,8 +2,10 @@ package okxv5
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
@@ -130,6 +132,26 @@ func (okx *OkxV5Exchange) CancelBatchOrders(orders []*types.Order) ([]*types.Ord
 	return okx.restClient.CancelBatchOrders(orders)
 }
 
+func (okx *OkxV5Exchange) CreateBatchOrdersWs(orders []*types.Order) error {
+	params := map[string]interface{}{
+		"id": utils.RandomString(16),
+		"op": "batch-orders",
+	}
+
+	var args []map[string]interface{}
+	for _, order := range orders {
+		orderArgs := formRequest(order)
+		args = append(args, orderArgs)
+	}
+	params["args"] = args
+
+	if err := okx.priWsClient.Write(params); err != nil {
+		return fmt.Errorf("CreateBatchOrdersWs err: %s", err)
+	}
+
+	return nil
+}
+
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
 	// if okx.puWsClient == nil {
 	// 	return fmt.Errorf("pubWsClient is nil")
@@ -180,9 +202,14 @@ func (okx *OkxV5Exchange) SubscribeOrders(symbols []string, callback func(orders
 	// 构建订阅请求的参数
 	args := make([]map[string]string, 0)
 	for _, symbol := range symbols {
+		instType := "SPOT"
+		tmp := strings.Split(symbol, "_")
+		if len(tmp) == 3 {
+			instType = "SWAP"
+		}
 		arg := map[string]string{
 			"channel":  "orders",
-			"instType": "SWAP",                  // 这里假设所有的symbol都是SWAP类型，根据需要调整
+			"instType": instType,                // 这里假设所有的symbol都是SWAP类型，根据需要调整
 			"instId":   Symbol2OkInstId(symbol), // 为每个symbol设置instFamily
 		}
 		args = append(args, arg)
