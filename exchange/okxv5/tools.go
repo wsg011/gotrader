@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	RestUrl  = "https://www.okex.com"
+	RestUrl  = "https://www.okx.com"
 	PubWsUrl = "wss://ws.okx.com:8443/ws/v5/public"
 	PriWsUrl = "wss://ws.okx.com:8443/ws/v5/private"
 
