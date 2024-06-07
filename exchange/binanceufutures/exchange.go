@@ -80,7 +80,7 @@ func (binance *BinanceUFuturesExchange) CancelBatchOrders(orders []*types.Order)
 }
 
 func (binance *BinanceUFuturesExchange) FetchTickers() ([]*types.Ticker, error) {
-	return nil, fmt.Errorf("not impl")
+	return binance.restClient.FetchTickers()
 }
 
 func (binance *BinanceUFuturesExchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
