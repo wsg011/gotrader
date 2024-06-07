@@ -10,9 +10,12 @@ import (
 
 func TestNewBinanceSpot(t *testing.T) {
 	params := &types.ExchangeParameters{
-		AccessKey:  "your_access_key",
-		SecretKey:  "your_secret_key",
-		Passphrase: "your_passphrase",
+		// AccessKey:  "your_access_key",
+		// SecretKey:  "your_secret_key",
+		// Passphrase: "your_passphrase",
+		AccessKey:  "Yo0gUrDtgMCcEQSxK4v6vQg90qIU1O3NZX1VKkUt1PBDu0r9Pu1PsrM1OJnooXZg",
+		SecretKey:  "KHCNySha8EpwnIUDn6KyAEw1G7mFrp0MOzjWK6SWStWyMDITqx6xxa1Q6BKTVski",
+		Passphrase: "",
 	}
 
 	exchange := NewBinanceSpot(params)
@@ -38,4 +41,25 @@ func TestFetchSymbols(t *testing.T) {
 		}
 	}
 	// assert.Equal(t, constant.OkxV5Swap, typ, "Exchange type mismatch")
+}
+
+func TestFetchBalance(t *testing.T) {
+	params := &types.ExchangeParameters{
+		// AccessKey:  "your_access_key",
+		// SecretKey:  "your_secret_key",
+		// Passphrase: "your_passphrase",
+		AccessKey:  "Yo0gUrDtgMCcEQSxK4v6vQg90qIU1O3NZX1VKkUt1PBDu0r9Pu1PsrM1OJnooXZg",
+		SecretKey:  "KHCNySha8EpwnIUDn6KyAEw1G7mFrp0MOzjWK6SWStWyMDITqx6xxa1Q6BKTVski",
+		Passphrase: "",
+	}
+
+	exchange := NewBinanceSpot(params)
+
+	balance, err := exchange.FetchBalance()
+	if err != nil {
+		t.Errorf("FetchBalance error %s", err)
+	} else {
+		t.Logf("FetchBalance result %v", balance)
+	}
+
 }

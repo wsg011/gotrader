@@ -1,7 +1,9 @@
 package binancespot
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/wsg011/gotrader/pkg/httpx"
 	"github.com/wsg011/gotrader/pkg/utils"
@@ -31,27 +33,18 @@ func NewRestClient(apiKey, secretKey, passPhrase string, exchangeType constant.E
 	}
 	return client
 }
-func (client *RestClient) HttpRequest(method string, uri string, payload []byte) ([]byte, *http.Response, error) {
-	var param string
-	if payload != nil {
-		param = string(payload)
+func (client *RestClient) HttpRequest(method string, uri string, param map[string]interface{}) ([]byte, *http.Response, error) {
+	header := map[string]string{
+		"X-MBX-APIKEY": client.apiKey,
 	}
-	currentTime := utils.IsoTime()
-	toSignStr := currentTime + method + uri + param
-	signature := utils.GenBase64Digest(utils.HmacSha256(toSignStr, client.secretKey))
-	url := RestUrl + uri
-	head := map[string]string{
-		"Content-Type":         "application/json",
-		"OK-ACCESS-KEY":        client.apiKey,
-		"OK-ACCESS-SIGN":       signature,
-		"OK-ACCESS-TIMESTAMP":  currentTime,
-		"OK-ACCESS-PASSPHRASE": client.passPhrase,
-	}
+	param["timestamp"] = time.Now().UnixMilli() - 1000
+	toSignStr := utils.UrlEncodeParams(param)
+	signature := utils.GenHexDigest(utils.HmacSha256(toSignStr, client.secretKey))
+	url := fmt.Sprintf("%s%s?%s&signature=%s", RestUrl, uri, toSignStr, signature)
 	args := &httpx.Request{
 		Url:    url,
-		Head:   head,
+		Head:   header,
 		Method: method,
-		Body:   payload,
 	}
 	body, res, err := httpClient.Request(args)
 	if err != nil {

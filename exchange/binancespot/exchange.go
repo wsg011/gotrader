@@ -66,6 +66,10 @@ func (binance *BinanceSpotExchange) FetchSymbols() ([]*types.SymbolInfo, error) 
 
 }
 
+func (binance *BinanceSpotExchange) FetchBalance() (*types.Assets, error) {
+	return binance.restClient.FetchBalance()
+}
+
 func (binance *BinanceSpotExchange) Subscribe(params map[string]interface{}) error {
 	// if okx.puWsClient == nil {
 	// 	return fmt.Errorf("pubWsClient is nil")
