@@ -2,6 +2,7 @@ package binanceufutures
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
@@ -26,19 +27,20 @@ func NewBinanceUFutures(params *types.ExchangeParameters) *BinanceUFuturesExchan
 	passPhrase := params.Passphrase
 
 	// new client
-	client := NewRestClient(apiKey, secretKey, passPhrase, constant.OkxV5Swap)
+	client := NewRestClient(apiKey, secretKey, passPhrase, constant.BinanceUFutures)
 	exchange := &BinanceUFuturesExchange{
-		exchangeType: constant.OkxV5Swap,
+		exchangeType: constant.BinanceUFutures,
 		restClient:   client,
 	}
 	// pubWsClient
-	// pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
-	// if err := pubWsClient.Dial(ws.Connect); err != nil {
-	// 	log.Errorf("pubWsClient.Dial err %s", err)
-	// } else {
-	// 	exchange.pubWsClient = pubWsClient
-	// 	log.Infof("pubWsClient.Dial success")
-	// }
+	pubWsClient := NewBinanceUFuturesPubWsClient(exchange.OnPubWsHandle)
+	if err := pubWsClient.Dial(ws.Connect); err != nil {
+		log.Errorf("pubWsClient.Dial err %s", err)
+	} else {
+		exchange.pubWsClient = pubWsClient
+		log.Infof("pubWsClient.Dial success")
+	}
+
 	// // priWsClient
 	// if len(apiKey) > 0 {
 	// 	priWsClient := NewOkPriWsClient(apiKey, secretKey, passPhrase, exchange.OnPriWsHandle)
@@ -110,11 +112,49 @@ func (binance *BinanceUFuturesExchange) Subscribe(params map[string]interface{})
 }
 
 func (binance *BinanceUFuturesExchange) SubscribeBookTicker(symbols []string, callback func(*types.BookTicker)) (err error) {
+	for _, symbol := range symbols {
+		var args []string
+		args = append(args, fmt.Sprintf("%s@bookTicker", Symbol2BinanceWsInstId(symbol)))
 
-	return fmt.Errorf("not impl")
+		params := map[string]interface{}{
+			"method": "SUBSCRIBE",
+			"params": args,
+			"id":     1,
+		}
+
+		if binance.pubWsClient == nil {
+			return fmt.Errorf("pubWsClient is nil")
+		}
+
+		if err := binance.pubWsClient.Write(params); err != nil {
+			return fmt.Errorf("Subscribe err: %s", err)
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	binance.onBooktickerCallback = callback
+	return nil
 }
 
 func (binance *BinanceUFuturesExchange) SubscribeOrders(symbols []string, callback func(orders []*types.Order)) (err error) {
 
 	return fmt.Errorf("not impl")
+}
+
+func (binance *BinanceUFuturesExchange) OnPubWsHandle(data interface{}) {
+	switch v := data.(type) {
+	case *types.BookTicker:
+		// callback
+		if binance.onBooktickerCallback != nil {
+			binance.onBooktickerCallback(v)
+		} else {
+			log.Errorf("OnBookTicker Callback not set")
+		}
+	case *types.OrderBook:
+		fmt.Println("OrderBook type", v)
+	case *types.Trade:
+		fmt.Println("Trade type", v)
+	default:
+		log.Errorf("Unknown type %s", v)
+	}
 }

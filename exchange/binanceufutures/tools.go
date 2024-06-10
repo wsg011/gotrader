@@ -1,9 +1,14 @@
 package binanceufutures
 
+import (
+	"fmt"
+	"strings"
+)
+
 var (
 	RestUrl  = "https://fapi.binance.com"
-	PubWsUrl = "wss://fstream.binance.com/ws//public"
-	PriWsUrl = "wss://fstream.binance.com/ws/private"
+	PubWsUrl = "wss://fstream.binance.com/stream"
+	PriWsUrl = "wss://fstream.binance.com/ws/"
 )
 
 // binanceF rest 接口url
@@ -31,3 +36,11 @@ const (
 	SetLeverage         = "/fapi/v1/leverage"
 	FetchFundingFeeRest = "/fapi/v1/income" // 权重 30
 )
+
+func Symbol2BinanceWsInstId(symbol string) string {
+	tmp := strings.Split(symbol, "_")
+	if len(tmp) == 2 {
+		return fmt.Sprintf("%s%s", strings.ToLower(tmp[0]), strings.ToLower(tmp[1]))
+	}
+	panic("bad symbol:" + symbol)
+}
