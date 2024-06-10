@@ -66,12 +66,11 @@ func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, er
 }
 
 func (binance *BinancePortfolioExchange) FetchBalance() (*types.Assets, error) {
-	return nil, fmt.Errorf("not impl")
+	return binance.restClient.FetchBalance()
 }
 
 func (binance *BinancePortfolioExchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
-
-	return nil, fmt.Errorf("not impl")
+	return binance.restClient.CreateBatchOrders(orders)
 }
 
 func (binance *BinancePortfolioExchange) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
@@ -96,7 +95,7 @@ func (binance *BinancePortfolioExchange) FetchFundingRateHistory(symbol string, 
 }
 
 func (binance *BinancePortfolioExchange) FetchPositons() ([]*types.Position, error) {
-	return nil, fmt.Errorf("not impl")
+	return binance.restClient.FetchPositons()
 }
 
 func (binance *BinancePortfolioExchange) Subscribe(params map[string]interface{}) error {

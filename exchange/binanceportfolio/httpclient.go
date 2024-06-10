@@ -34,6 +34,9 @@ func NewRestClient(apiKey, secretKey, passPhrase string, exchangeType constant.E
 	return client
 }
 func (client *RestClient) HttpRequest(method string, uri string, param map[string]interface{}) ([]byte, *http.Response, error) {
+	if param == nil {
+		param = make(map[string]interface{}, 1)
+	}
 	header := map[string]string{
 		"X-MBX-APIKEY": client.apiKey,
 	}
