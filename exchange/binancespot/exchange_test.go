@@ -42,8 +42,10 @@ func TestFetchSymbols(t *testing.T) {
 
 func TestFetchBalance(t *testing.T) {
 	params := &types.ExchangeParameters{
-		AccessKey:  "",
-		SecretKey:  "",
+		// AccessKey:  "",
+		// SecretKey:  "",
+		AccessKey:  "Yo0gUrDtgMCcEQSxK4v6vQg90qIU1O3NZX1VKkUt1PBDu0r9Pu1PsrM1OJnooXZg",
+		SecretKey:  "KHCNySha8EpwnIUDn6KyAEw1G7mFrp0MOzjWK6SWStWyMDITqx6xxa1Q6BKTVski",
 		Passphrase: "",
 	}
 

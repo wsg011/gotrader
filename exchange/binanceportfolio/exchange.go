@@ -44,13 +44,15 @@ func NewBinancePortfoli(params *types.ExchangeParameters) *BinancePortfolioExcha
 		listenKey, err := exchange.GetListenKey()
 		if err != nil {
 			log.Errorf("GetListenKey err %s", err)
-		}
-		priWsClient := NewBinancePriWsClient(apiKey, secretKey, passPhrase, listenKey, exchange.OnPriWsHandle)
-		if err := priWsClient.Dial(ws.Connect); err != nil {
-			log.Errorf("priWsClient.Dial err %s", err)
 		} else {
-			exchange.priWsClient = priWsClient
-			log.Infof("priWsClient.Dial success")
+			priWsClient := NewBinancePriWsClient(apiKey, secretKey, passPhrase, listenKey, exchange.OnPriWsHandle)
+			if err := priWsClient.Dial(ws.Connect); err != nil {
+				log.Errorf("priWsClient.Dial err %s", err)
+			} else {
+				exchange.priWsClient = priWsClient
+				log.Infof("priWsClient.Dial success")
+			}
+			exchange.KeepUserStream(listenKey)
 		}
 	}
 	return exchange
@@ -67,6 +69,10 @@ func (binance *BinancePortfolioExchange) GetType() (typ constant.ExchangeType) {
 
 func (binance *BinancePortfolioExchange) GetListenKey() (string, error) {
 	return binance.restClient.GetListenKey()
+}
+
+func (binance *BinancePortfolioExchange) KeepUserStream(listenKey string) {
+	go binance.restClient.KeepUserStream(listenKey)
 }
 
 func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, error) {
@@ -91,7 +97,7 @@ func (binance *BinancePortfolioExchange) CreateMMOrders(orders []*types.Order) (
 
 func (binance *BinancePortfolioExchange) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 
-	return nil, fmt.Errorf("not impl")
+	return binance.restClient.CancelBatchOrders(orders)
 }
 
 func (binance *BinancePortfolioExchange) FetchTickers() ([]*types.Ticker, error) {

@@ -157,7 +157,7 @@ func (okx *OkxV5Exchange) SubscribeBookTicker(symbols []string, callback func(*t
 		if err := okx.pubWsClient.Write(params); err != nil {
 			return fmt.Errorf("Subscribe err: %s", err)
 		}
-		time.Sleep(200 * time.Microsecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 
 	okx.onBooktickerCallback = callback

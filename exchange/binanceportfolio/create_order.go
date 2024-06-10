@@ -82,7 +82,7 @@ func formRequest(order *types.Order) map[string]interface{} {
 		"timeInForce": "GTC",
 	}
 	if order.ClientID != "" {
-		result["clOrdId"] = order.ClientID
+		result["newClientOrderId"] = order.ClientID
 	}
 
 	return result

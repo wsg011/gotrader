@@ -65,6 +65,7 @@ const (
 	FetchPositionsUri = "/papi/v1/um/positionRisk"
 	CreateOrderUri    = "/papi/v1/um/order"
 	CreateMMOrderUri  = "/papi/v1/margin/order"
+	CancelUMOrderUri  = "/papi/v1/um/order"
 )
 
 func Symbol2Binance(symbol string) string {

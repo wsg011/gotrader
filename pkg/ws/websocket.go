@@ -2,12 +2,13 @@ package ws
 
 import (
 	"fmt"
-	"github.com/wsg011/gotrader/pkg/utils"
-	"github.com/wsg011/gotrader/trader/constant"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/wsg011/gotrader/pkg/utils"
+	"github.com/wsg011/gotrader/trader/constant"
 
 	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
@@ -39,8 +40,8 @@ func NewWsClient(url string, imp WsImp, exchangeType constant.ExchangeType, ping
 		url:          url,
 		imp:          imp,
 		wch:          make(chan []byte, 1024),
-		pingInterval: 20 * time.Second,
-		pongTimeout:  30 * time.Second,
+		pingInterval: pingInterval,
+		pongTimeout:  pongTimeout,
 		exchange:     exchangeType,
 	}
 }

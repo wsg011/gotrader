@@ -17,6 +17,7 @@ type RestClient struct {
 	secretKey    string
 	passPhrase   string
 	exchangeType constant.ExchangeType
+	stopChan     chan struct{}
 }
 
 type BaseOkRsp struct {
@@ -30,6 +31,7 @@ func NewRestClient(apiKey, secretKey, passPhrase string, exchangeType constant.E
 		secretKey:    secretKey,
 		passPhrase:   passPhrase,
 		exchangeType: exchangeType,
+		stopChan:     make(chan struct{}),
 	}
 	return client
 }
