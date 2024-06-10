@@ -1,9 +1,14 @@
 package binancespot
 
+import (
+	"fmt"
+	"strings"
+)
+
 var (
 	RestUrl  = "https://api.binance.com"
-	PubWsUrl = "wss://stream.binance.com:9443/public"
-	PriWsUrl = "wss://stream.binance.com:9443/private"
+	PubWsUrl = "wss://stream.binance.com:9443/stream"
+	PriWsUrl = "wss://stream.binance.com:9443/ws/"
 )
 
 const (
@@ -29,3 +34,11 @@ const (
 	PrivateCurrenciesUri    = "/sapi/v1/capital/config/getall"         // 权重(IP): 10
 	PrivateDepositAddr      = "/sapi/v1/capital/deposit/address"       // 权重(IP): 10
 )
+
+func Symbol2BinanceWsInstId(symbol string) string {
+	tmp := strings.Split(symbol, "_")
+	if len(tmp) == 2 {
+		return fmt.Sprintf("%s%s", strings.ToLower(tmp[0]), strings.ToLower(tmp[1]))
+	}
+	panic("bad symbol:" + symbol)
+}

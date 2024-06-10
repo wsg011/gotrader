@@ -2,6 +2,7 @@ package binancespot
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wsg011/gotrader/trader/constant"
@@ -10,11 +11,8 @@ import (
 
 func TestNewBinanceSpot(t *testing.T) {
 	params := &types.ExchangeParameters{
-		// AccessKey:  "your_access_key",
-		// SecretKey:  "your_secret_key",
-		// Passphrase: "your_passphrase",
-		AccessKey:  "Yo0gUrDtgMCcEQSxK4v6vQg90qIU1O3NZX1VKkUt1PBDu0r9Pu1PsrM1OJnooXZg",
-		SecretKey:  "KHCNySha8EpwnIUDn6KyAEw1G7mFrp0MOzjWK6SWStWyMDITqx6xxa1Q6BKTVski",
+		AccessKey:  "",
+		SecretKey:  "",
 		Passphrase: "",
 	}
 
@@ -40,16 +38,12 @@ func TestFetchSymbols(t *testing.T) {
 			break
 		}
 	}
-	// assert.Equal(t, constant.OkxV5Swap, typ, "Exchange type mismatch")
 }
 
 func TestFetchBalance(t *testing.T) {
 	params := &types.ExchangeParameters{
-		// AccessKey:  "your_access_key",
-		// SecretKey:  "your_secret_key",
-		// Passphrase: "your_passphrase",
-		AccessKey:  "Yo0gUrDtgMCcEQSxK4v6vQg90qIU1O3NZX1VKkUt1PBDu0r9Pu1PsrM1OJnooXZg",
-		SecretKey:  "KHCNySha8EpwnIUDn6KyAEw1G7mFrp0MOzjWK6SWStWyMDITqx6xxa1Q6BKTVski",
+		AccessKey:  "",
+		SecretKey:  "",
 		Passphrase: "",
 	}
 
@@ -62,4 +56,31 @@ func TestFetchBalance(t *testing.T) {
 		t.Logf("FetchBalance result %v", balance)
 	}
 
+}
+
+func TestSubscribeBookTicker(t *testing.T) {
+	params := &types.ExchangeParameters{
+		AccessKey:  "",
+		SecretKey:  "",
+		Passphrase: "",
+	}
+
+	exchange := NewBinanceSpot(params)
+	callback := func(b *types.BookTicker) {
+		t.Logf("Received: %+v", b)
+	}
+
+	err := exchange.SubscribeBookTicker([]string{"BTC_USDT"}, callback)
+	if err != nil {
+		t.Errorf("SubscribeBookTicker err: %s", err)
+	}
+	time.Sleep(20 * time.Second) // 等待5秒
+
+	tickers, err := exchange.FetchTickers()
+	if err != nil {
+		t.Errorf("FetchTickers err %s", err)
+	} else {
+		t.Logf("tickers len %v", len(tickers))
+		t.Logf("tickers %+v", tickers[0])
+	}
 }
