@@ -87,3 +87,32 @@ func formRequest(order *types.Order) map[string]interface{} {
 
 	return result
 }
+
+func (client *RestClient) CreateMMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	result := make([]*types.OrderResult, 0)
+	for _, order := range orders {
+		param := formRequest(order)
+
+		uri := CreateMMOrderUri
+		body, res, err := client.HttpRequest(http.MethodPost, uri, param)
+		if err != nil {
+			log.Errorf("binance post /papi/v1/margin/order err: %v", err)
+			continue
+		}
+		if res.StatusCode != 200 {
+			log.Errorf("binance post /papi/v1/margin/order err: %v %s", res.StatusCode, body)
+			continue
+		}
+
+		var orderResponse OrderResponse
+		if err = json.Unmarshal(body, &orderResponse); err != nil {
+			log.Infof("binance post /papi/v1/margin/order parsing JSON err: %v", err)
+			continue
+		}
+
+		info := orderTransform(order.Symbol, &orderResponse)
+		result = append(result, info)
+	}
+
+	return result, nil
+}

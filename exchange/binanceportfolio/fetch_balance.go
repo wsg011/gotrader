@@ -58,7 +58,6 @@ func (client *RestClient) FetchBalance() (*types.Assets, error) {
 	    }
 	]
 	**/
-	log.Infof("balance %s", body)
 	var balances []BalanceInfo
 	if err = json.Unmarshal(body, &balances); err != nil {
 		log.Errorf("binance get /papi/v1/balance parser err:%v", err)

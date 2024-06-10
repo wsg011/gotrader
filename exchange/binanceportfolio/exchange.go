@@ -40,15 +40,19 @@ func NewBinancePortfoli(params *types.ExchangeParameters) *BinancePortfolioExcha
 	// 	log.Infof("pubWsClient.Dial success")
 	// }
 	// // priWsClient
-	// if len(apiKey) > 0 {
-	// 	priWsClient := NewOkPriWsClient(apiKey, secretKey, passPhrase, exchange.OnPriWsHandle)
-	// 	if err := priWsClient.Dial(ws.Connect); err != nil {
-	// 		log.Errorf("priWsClient.Dial err %s", err)
-	// 	} else {
-	// 		exchange.priWsClient = priWsClient
-	// 		log.Infof("priWsClient.Dial success")
-	// 	}
-	// }
+	if len(apiKey) > 0 {
+		listenKey, err := exchange.GetListenKey()
+		if err != nil {
+			log.Errorf("GetListenKey err %s", err)
+		}
+		priWsClient := NewBinancePriWsClient(apiKey, secretKey, passPhrase, listenKey, exchange.OnPriWsHandle)
+		if err := priWsClient.Dial(ws.Connect); err != nil {
+			log.Errorf("priWsClient.Dial err %s", err)
+		} else {
+			exchange.priWsClient = priWsClient
+			log.Infof("priWsClient.Dial success")
+		}
+	}
 	return exchange
 }
 
@@ -61,6 +65,10 @@ func (binance *BinancePortfolioExchange) GetType() (typ constant.ExchangeType) {
 	return binance.exchangeType
 }
 
+func (binance *BinancePortfolioExchange) GetListenKey() (string, error) {
+	return binance.restClient.GetListenKey()
+}
+
 func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, error) {
 	return nil, fmt.Errorf("not impl")
 }
@@ -71,6 +79,14 @@ func (binance *BinancePortfolioExchange) FetchBalance() (*types.Assets, error) {
 
 func (binance *BinancePortfolioExchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 	return binance.restClient.CreateBatchOrders(orders)
+}
+
+func (binance *BinancePortfolioExchange) CreateUMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	return binance.restClient.CreateBatchOrders(orders)
+}
+
+func (binance *BinancePortfolioExchange) CreateMMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	return binance.restClient.CreateMMOrders(orders)
 }
 
 func (binance *BinancePortfolioExchange) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
@@ -113,7 +129,20 @@ func (binance *BinancePortfolioExchange) SubscribeBookTicker(symbols []string, c
 	return fmt.Errorf("not impl")
 }
 
-func (binance *BinancePortfolioExchange) SubscribeOrders(symbols []string, callback func(orders []*types.Order)) (err error) {
+func (binance *BinancePortfolioExchange) SubscribeOrders(symbols []string, callback func(orders []*types.Order)) error {
+	binance.onOrderCallback = callback
+	return nil
+}
 
-	return fmt.Errorf("not impl")
+func (binance *BinancePortfolioExchange) OnPriWsHandle(data interface{}) {
+	switch v := data.(type) {
+	case []*types.Order:
+		if binance.onOrderCallback != nil {
+			binance.onOrderCallback(v)
+		} else {
+			log.Errorf("onOrder Callback not set")
+		}
+	default:
+		log.Errorf("Unknown type %s", v)
+	}
 }
