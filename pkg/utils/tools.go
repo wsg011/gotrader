@@ -6,6 +6,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"hash"
 	"net/url"
 	"strconv"
@@ -90,4 +91,10 @@ func ParseFloat(str string) (float64, error) {
 		return 0, err
 	}
 	return numberFloat, nil
+}
+
+func JsonDecode(jsonBytes []byte, result interface{}) error {
+	// result 为结果对应的指针
+	err := json.Unmarshal(jsonBytes, result)
+	return err
 }

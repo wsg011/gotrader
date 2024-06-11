@@ -1,3 +1,7 @@
 *.toml
 .idea/
+
 exchange/okxv5/exchange_test.go
+exchange/binancespot/exchange_test.go
+exchange/binanceufutures/exchange_test.go
+exchange/binanceportfolio/exchange_test.go
