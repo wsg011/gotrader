@@ -21,6 +21,7 @@ type Order struct {
 	Fee           string                `json:"fee"`
 	Status        constant.OrderStatus  `json:"status"` // 自定义的订单状态，统一各交易所订单状态
 	ExchangeType  constant.ExchangeType `json:"exchangeType"`
+	MarketType    string
 	HedgeClientId string
 	HedgingPrice  string
 	ExpectSpred   float64

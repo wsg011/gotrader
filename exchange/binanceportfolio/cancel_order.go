@@ -3,11 +3,12 @@ package binanceportfolio
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/wsg011/gotrader/trader/types"
 )
 
-func (client *RestClient) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+func (client *RestClient) CancelUMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 	result := make([]*types.OrderResult, 0)
 	for _, order := range orders {
 		param := formCancelRequest(order)
@@ -30,11 +31,21 @@ func (client *RestClient) CancelBatchOrders(orders []*types.Order) ([]*types.Ord
 			continue
 		}
 
-		info := orderTransform(order.Symbol, &orderResponse)
+		info := orderCancelTransform(order.Symbol, &orderResponse)
 		result = append(result, info)
 	}
 
 	return result, nil
+}
+
+func orderCancelTransform(symbol string, info *OrderResponse) *types.OrderResult {
+	var result types.OrderResult
+	if info.Status != "NEW" {
+		result.IsSuccess = true
+	}
+	result.OrderId = strconv.FormatInt(info.OrderId, 10)
+	result.ClientId = info.ClientOrderId
+	return &result
 }
 
 func formCancelRequest(order *types.Order) map[string]interface{} {

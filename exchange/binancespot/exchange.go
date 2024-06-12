@@ -27,7 +27,7 @@ func NewBinanceSpot(params *types.ExchangeParameters) *BinanceSpotExchange {
 	passPhrase := params.Passphrase
 
 	// new client
-	client := NewRestClient(apiKey, secretKey, passPhrase, constant.OkxV5Swap)
+	client := NewRestClient(apiKey, secretKey, passPhrase, constant.BinanceSpot)
 	exchange := &BinanceSpotExchange{
 		exchangeType: constant.OkxV5Swap,
 		restClient:   client,
@@ -65,6 +65,10 @@ func (binance *BinanceSpotExchange) GetType() (typ constant.ExchangeType) {
 func (binance *BinanceSpotExchange) FetchSymbols() ([]*types.SymbolInfo, error) {
 	return binance.restClient.FetchSymbols()
 
+}
+func (binance *BinanceSpotExchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
+
+	return nil, fmt.Errorf("not impl")
 }
 
 func (binance *BinanceSpotExchange) FetchBalance() (*types.Assets, error) {
@@ -104,10 +108,11 @@ func (binance *BinanceSpotExchange) SubscribeBookTicker(symbols []string, callba
 		if err := binance.pubWsClient.Write(params); err != nil {
 			return fmt.Errorf("Subscribe err: %s", err)
 		}
+		binance.onBooktickerCallback = callback
+
 		time.Sleep(200 * time.Millisecond)
 	}
 
-	binance.onBooktickerCallback = callback
 	return nil
 }
 

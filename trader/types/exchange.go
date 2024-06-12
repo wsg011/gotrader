@@ -6,4 +6,5 @@ type ExchangeParameters struct {
 	AccessKey  string
 	SecretKey  string
 	Passphrase string
+	MarketType string // 市场类型，用于binance portfolio margin
 }

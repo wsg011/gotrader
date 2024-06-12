@@ -28,7 +28,7 @@ func NewBinancePriWsClient(accessKey, secretKey, passphrase, listenKey string, r
 		isPrivate:  true,
 	}
 	url := PriWsUrl + listenKey
-	client := ws.NewWsClient(url, imp, constant.OkxV5Spot, 20*time.Second, 30*time.Second)
+	client := ws.NewWsClient(url, imp, constant.OkxV5Spot, 60*time.Minute, 30*time.Second)
 	return client
 }
 
@@ -58,6 +58,14 @@ func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 			l := dict["o"].(map[string]interface{})
 
 			if l["x"] == "TRADE" {
+				log.Infof("ORDER_TRADE_UPDATE %s", bs)
+
+				CreateAt, err := json.Number(l["T"].(json.Number)).Int64()
+				if err != nil {
+					// handle error, perhaps set T to 0 or log an error message
+					CreateAt = 0
+				}
+
 				evt := &types.Order{
 					Symbol:      l["s"].(string),               // 假设这是一个转换函数
 					Type:        Binance2Type[l["o"].(string)], // 假设可以直接转换
@@ -69,8 +77,9 @@ func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 					ExecutedQty: l["z"].(string),
 					AvgPrice:    l["ap"].(string),
 					Fee:         l["n"].(string),
+					MarketType:  dict["fs"].(string),
 					Status:      Binance2Status[l["X"].(string)], // 假设可以直接转换
-					CreateAt:    l["T"].(int64),                  // 示例：使用当前时间的毫秒表示
+					CreateAt:    CreateAt,                        // 示例：使用当前时间的毫秒表示
 					UpdateAt:    time.Now().UnixNano() / int64(time.Millisecond),
 				}
 				binance.rspHandle([]*types.Order{evt})

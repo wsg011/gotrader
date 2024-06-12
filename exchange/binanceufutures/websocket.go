@@ -2,7 +2,6 @@ package binanceufutures
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -29,7 +28,7 @@ type BinanceImp struct {
 
 func NewBinanceUFuturesPubWsClient(rspHandle func(interface{})) *ws.WsClient {
 	imp := &BinanceImp{rspHandle: rspHandle}
-	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceUFutures, 20*time.Second, 30*time.Second)
+	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceUFutures, 60*time.Minute, 30*time.Second)
 	return client
 }
 
@@ -55,7 +54,7 @@ func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 
 	parts := strings.Split(dat.Stream, "@")
 	if len(parts) != 2 {
-		fmt.Println("Stream format is incorrect")
+		log.Errorf("Stream format is incorrect %s", dat)
 		return
 	}
 

@@ -29,7 +29,7 @@ type OrderResponse struct {
 	UpdateTime              int64  `json:"updateTime"`
 }
 
-func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+func (client *RestClient) CreateUMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 	result := make([]*types.OrderResult, 0)
 	for _, order := range orders {
 		param := formRequest(order)
@@ -60,7 +60,7 @@ func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.Ord
 
 func orderTransform(symbol string, info *OrderResponse) *types.OrderResult {
 	var result types.OrderResult
-	if info.Status == "NEW" {
+	if info.Status == "NEW" || info.Status == "FILLED" {
 		result.IsSuccess = true
 	}
 	result.OrderId = strconv.FormatInt(info.OrderId, 10)

@@ -3,6 +3,8 @@ package binanceportfolio
 import (
 	"fmt"
 
+	"github.com/wsg011/gotrader/exchange/binancespot"
+	"github.com/wsg011/gotrader/exchange/binanceufutures"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
@@ -10,6 +12,10 @@ import (
 
 type BinancePortfolioExchange struct {
 	exchangeType constant.ExchangeType
+	marketType   string
+
+	mmRestClient *binancespot.RestClient
+	umRestClient *binanceufutures.RestClient
 
 	restClient  *RestClient
 	pubWsClient *ws.WsClient
@@ -26,10 +32,15 @@ func NewBinancePortfoli(params *types.ExchangeParameters) *BinancePortfolioExcha
 	passPhrase := params.Passphrase
 
 	// new client
-	client := NewRestClient(apiKey, secretKey, passPhrase, constant.OkxV5Swap)
+	client := NewRestClient(apiKey, secretKey, passPhrase, constant.BinancePortfolio)
+	mmRestClient := binancespot.NewRestClient(apiKey, secretKey, passPhrase, constant.BinanceSpot)
+	umRestClient := binanceufutures.NewRestClient(apiKey, secretKey, passPhrase, constant.BinanceSpot)
 	exchange := &BinancePortfolioExchange{
-		exchangeType: constant.OkxV5Swap,
+		exchangeType: constant.BinancePortfolio,
+		marketType:   params.MarketType,
 		restClient:   client,
+		mmRestClient: mmRestClient,
+		umRestClient: umRestClient,
 	}
 	// pubWsClient
 	// pubWsClient := NewOkPubWsClient(exchange.OnPubWsHandle)
@@ -76,6 +87,12 @@ func (binance *BinancePortfolioExchange) KeepUserStream(listenKey string) {
 }
 
 func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, error) {
+	if binance.marketType == UMExchange {
+		return binance.umRestClient.FetchSymbols()
+	}
+	if binance.marketType == MMExchange {
+		return binance.mmRestClient.FetchSymbols()
+	}
 	return nil, fmt.Errorf("not impl")
 }
 
@@ -84,27 +101,34 @@ func (binance *BinancePortfolioExchange) FetchBalance() (*types.Assets, error) {
 }
 
 func (binance *BinancePortfolioExchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
-	return binance.restClient.CreateBatchOrders(orders)
-}
-
-func (binance *BinancePortfolioExchange) CreateUMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
-	return binance.restClient.CreateBatchOrders(orders)
-}
-
-func (binance *BinancePortfolioExchange) CreateMMOrders(orders []*types.Order) ([]*types.OrderResult, error) {
-	return binance.restClient.CreateMMOrders(orders)
+	if binance.marketType == UMExchange {
+		return binance.restClient.CreateUMOrders(orders)
+	}
+	if binance.marketType == MMExchange {
+		return binance.restClient.CreateMMOrders(orders)
+	}
+	return nil, fmt.Errorf("not imp")
 }
 
 func (binance *BinancePortfolioExchange) CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
+	if binance.marketType == UMExchange {
+		return binance.restClient.CancelUMOrders(orders)
 
-	return binance.restClient.CancelBatchOrders(orders)
+	}
+	return nil, fmt.Errorf("not imp")
 }
 
 func (binance *BinancePortfolioExchange) FetchTickers() ([]*types.Ticker, error) {
+	if binance.marketType == UMExchange {
+		return binance.umRestClient.FetchTickers()
+	}
 	return nil, fmt.Errorf("not impl")
 }
 
 func (binance *BinancePortfolioExchange) FetchKline(symbol string, interval string, limit int64) ([]types.Kline, error) {
+	if binance.marketType == MMExchange {
+		return binance.mmRestClient.FetchKline(symbol, interval, limit)
+	}
 	return nil, fmt.Errorf("not impl")
 }
 

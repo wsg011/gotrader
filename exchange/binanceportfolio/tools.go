@@ -11,6 +11,9 @@ var (
 	PubWsUrl = "wss://fstream.binance.com/stream"
 	PriWsUrl = "wss://fstream.binance.com/pm/ws/"
 
+	UMExchange = "UM"
+	MMExchange = "MM"
+
 	BinanceOrderSide = map[string]string{
 		constant.OrderBuy.Name():   "BUY",
 		constant.OrderSell.Name():  "SELL",

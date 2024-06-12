@@ -129,10 +129,11 @@ func (binance *BinanceUFuturesExchange) SubscribeBookTicker(symbols []string, ca
 		if err := binance.pubWsClient.Write(params); err != nil {
 			return fmt.Errorf("Subscribe err: %s", err)
 		}
+		binance.onBooktickerCallback = callback
+
 		time.Sleep(200 * time.Millisecond)
 	}
 
-	binance.onBooktickerCallback = callback
 	return nil
 }
 
