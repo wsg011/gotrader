@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
 )
 
@@ -74,12 +75,14 @@ func formRequest(order *types.Order) map[string]interface{} {
 
 	// 目前只支持全仓模式
 	result := map[string]interface{}{
-		"symbol":      Symbol2Binance(order.Symbol),
-		"side":        Side2Binance[oSide],
-		"type":        Type2Binance[oType],
-		"price":       order.Price,
-		"quantity":    order.OrigQty,
-		"timeInForce": "GTC",
+		"symbol":   Symbol2Binance(order.Symbol),
+		"side":     Side2Binance[oSide],
+		"type":     Type2Binance[oType],
+		"quantity": order.OrigQty,
+	}
+	if order.Type == constant.Limit {
+		result["price"] = order.Price
+		result["timeInForce"] = "GTC"
 	}
 	if order.ClientID != "" {
 		result["newClientOrderId"] = order.ClientID

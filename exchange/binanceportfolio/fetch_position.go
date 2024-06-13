@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
@@ -53,7 +54,7 @@ func positionTransform(response []PositionInfo) ([]*types.Position, error) {
 	for _, item := range response {
 		log.Infof("item %+v", item)
 		info := &types.Position{
-			Symbol:        item.Symbol,
+			Symbol:        strings.Replace(item.Symbol, "USDT", "_USDT", 1),
 			LiquidationPx: item.LiquidationPrice,
 			Position:      math.Abs(item.PositionAmt),
 			AvgCost:       item.EntryPrice,

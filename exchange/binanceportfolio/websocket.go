@@ -2,6 +2,7 @@ package binanceportfolio
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/wsg011/gotrader/pkg/utils"
@@ -67,8 +68,8 @@ func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 				}
 
 				evt := &types.Order{
-					Symbol:      l["s"].(string),               // 假设这是一个转换函数
-					Type:        Binance2Type[l["o"].(string)], // 假设可以直接转换
+					Symbol:      strings.Replace(l["s"].(string), "USDT", "_USDT", 1), // 假设这是一个转换函数
+					Type:        Binance2Type[l["o"].(string)],                        // 假设可以直接转换
 					OrderID:     string(l["i"].(json.Number)),
 					ClientID:    l["c"].(string),
 					Side:        Binance2Side[l["S"].(string)], // 假设可以直接转换
