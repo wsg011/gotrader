@@ -63,6 +63,7 @@ var (
 )
 
 const (
+	AutoCollectionUri = "/papi/v1/auto-collection"
 	FetchBalanceUri   = "/papi/v1/balance"
 	FetchListenKey    = "/papi/v1/listenKey"
 	FetchPositionsUri = "/papi/v1/um/positionRisk"

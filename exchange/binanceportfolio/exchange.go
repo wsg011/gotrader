@@ -86,6 +86,10 @@ func (binance *BinancePortfolioExchange) KeepUserStream(listenKey string) {
 	go binance.restClient.KeepUserStream(listenKey)
 }
 
+func (binance *BinancePortfolioExchange) AutoCollection() (string, error) {
+	return binance.restClient.AutoCollection()
+}
+
 func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, error) {
 	if binance.marketType == UMExchange {
 		return binance.umRestClient.FetchSymbols()
