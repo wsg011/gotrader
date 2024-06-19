@@ -64,6 +64,8 @@ func (client *RestClient) FetchBalance() (*types.Assets, error) {
 		return nil, err
 	}
 
+	log.Infof("balance %s", body)
+
 	result, err := balanceTransform(balances)
 	if err != nil {
 		err := fmt.Errorf("binance get /papi/v1/balance transform err:%s", err)
@@ -90,12 +92,21 @@ func balanceTransform(response []BalanceInfo) (*types.Assets, error) {
 			log.Errorf("spot binance fetchBalance CrossMarginLocked 参数转换失败:%v", err)
 			return nil, err
 		}
+		umUnrealizedPNL, err := utils.ParseFloat(item.UmUnrealizedPNL)
+		if err != nil {
+			log.Errorf("portfolio binance fetchBalance umUnrealizedPNL 参数转换失败:%v", err)
+			return nil, err
+		}
 		total := free + locked
 		if decimal.NewFromFloat(total).Equal(decimal.NewFromInt(0)) {
 			continue
 		}
 
 		coin := strings.ToUpper(item.Asset)
+		if coin == "USDT" {
+			total = total + umUnrealizedPNL
+			totalUsdEq = total
+		}
 		info := types.Asset{
 			Coin:   coin,
 			Total:  total,
@@ -103,9 +114,7 @@ func balanceTransform(response []BalanceInfo) (*types.Assets, error) {
 			Free:   free,
 		}
 		assets[coin] = info
-		if coin == "USDT" {
-			totalUsdEq = total
-		}
+
 	}
 	result.Assets = assets
 	result.TotalUsdEq = totalUsdEq
