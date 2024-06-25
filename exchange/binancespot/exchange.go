@@ -29,7 +29,7 @@ func NewBinanceSpot(params *types.ExchangeParameters) *BinanceSpotExchange {
 	// new client
 	client := NewRestClient(apiKey, secretKey, passPhrase, constant.BinanceSpot)
 	exchange := &BinanceSpotExchange{
-		exchangeType: constant.OkxV5Swap,
+		exchangeType: constant.BinanceSpot,
 		restClient:   client,
 	}
 	// pubWsClient

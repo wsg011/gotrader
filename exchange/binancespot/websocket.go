@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/gorilla/websocket"
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
@@ -28,13 +29,20 @@ type BinanceImp struct {
 
 func NewBinanceSpotPubWsClient(rspHandle func(interface{})) *ws.WsClient {
 	imp := &BinanceImp{rspHandle: rspHandle}
-	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceSpot, 60*time.Minute, 30*time.Second)
+	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceSpot, 20*time.Second, 30*time.Second)
+
 	return client
 }
 
 func (binance *BinanceImp) Ping(cli *ws.WsClient) {
-	log.Infof("ping")
-	// cli.WriteBytes([]byte("ping"))
+	deadline := time.Now().Add(10 * time.Second)
+	err := cli.Conn.WriteControl(websocket.PingMessage, []byte{}, deadline)
+	if err != nil {
+		log.Errorf("ping error %s", err)
+		return
+	}
+
+	log.Infof("ping %s", deadline)
 }
 func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	if !binance.isPrivate {
@@ -43,6 +51,7 @@ func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	}
 	log.Info("binance spot private ws connected")
 	// ok.Login(cli)
+	// keepAlive(cli.Conn, 20*time.Second)
 }
 
 func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
@@ -54,7 +63,7 @@ func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 
 	parts := strings.Split(dat.Stream, "@")
 	if len(parts) != 2 {
-		log.Errorf("Stream format is incorrect %s", dat)
+		log.Errorf("Stream format is incorrect %s", dat.Stream)
 		return
 	}
 
@@ -110,4 +119,29 @@ func (binance *BinanceImp) onBboTbtRecv(data json.RawMessage) {
 	}
 
 	binance.rspHandle(evt)
+}
+
+func keepAlive(c *websocket.Conn, timeout time.Duration) {
+	ticker := time.NewTicker(timeout)
+
+	lastResponse := time.Now()
+	c.SetPongHandler(func(msg string) error {
+		lastResponse = time.Now()
+		return nil
+	})
+
+	go func() {
+		defer ticker.Stop()
+		for {
+			deadline := time.Now().Add(10 * time.Second)
+			err := c.WriteControl(websocket.PingMessage, []byte{}, deadline)
+			if err != nil {
+				return
+			}
+			<-ticker.C
+			if time.Since(lastResponse) > timeout {
+				return
+			}
+		}
+	}()
 }

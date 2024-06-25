@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/gorilla/websocket"
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
@@ -28,13 +29,19 @@ type BinanceImp struct {
 
 func NewBinanceUFuturesPubWsClient(rspHandle func(interface{})) *ws.WsClient {
 	imp := &BinanceImp{rspHandle: rspHandle}
-	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceUFutures, 60*time.Minute, 30*time.Second)
+	client := ws.NewWsClient(PubWsUrl, imp, constant.BinanceUFutures, 20*time.Second, 30*time.Second)
 	return client
 }
 
 func (binance *BinanceImp) Ping(cli *ws.WsClient) {
-	log.Infof("ping")
-	// cli.WriteBytes([]byte("ping"))
+	deadline := time.Now().Add(10 * time.Second)
+	err := cli.Conn.WriteControl(websocket.PingMessage, []byte{}, deadline)
+	if err != nil {
+		log.Errorf("ping error %s", err)
+		return
+	}
+
+	log.Infof("ping %s", deadline)
 }
 func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	if !binance.isPrivate {

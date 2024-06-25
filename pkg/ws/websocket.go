@@ -7,17 +7,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/trader/constant"
 
 	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 )
 
 type WsClient struct {
 	url      string
-	conn     *websocket.Conn
+	Conn     *websocket.Conn
 	wch      chan []byte
 	imp      WsImp
 	exchange constant.ExchangeType
@@ -78,17 +76,18 @@ func (ws *WsClient) Dial(typ ConnectType) error {
 	}
 
 	now := time.Now()
-	ws.conn = conn
+	ws.Conn = conn
 	ws.closed = false
 	ws.recvPingTime = now
 	ws.recvPongTime = now
 	ws.quit = make(chan struct{})
-	ws.conn.SetPingHandler(func(message string) error {
+
+	ws.Conn.SetPingHandler(func(message string) error {
 		ws.recvPingTime = time.Now()
 		return conn.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(time.Second*10))
 	})
 
-	ws.conn.SetPongHandler(func(message string) error {
+	ws.Conn.SetPongHandler(func(message string) error {
 		ws.recvPongTime = time.Now()
 		return nil
 	})
@@ -103,6 +102,7 @@ func (ws *WsClient) Dial(typ ConnectType) error {
 
 func (ws *WsClient) reconnect() {
 	ws.Close() // 关闭现有连接
+
 	for {
 		err := ws.Dial(Reconnect)
 		if err != nil {
@@ -110,6 +110,7 @@ func (ws *WsClient) reconnect() {
 			time.Sleep(5 * time.Second) // 重连前等待
 			continue
 		}
+		log.Infof("Reconnect success.")
 		break
 	}
 }
@@ -121,12 +122,8 @@ func (ws *WsClient) Close() {
 		log.Warn("already closed")
 		return
 	}
-	log.WithFields(logrus.Fields{
-		"exchange": ws.exchange.Name(),
-		"priv":     ws.priv,
-	}).Warn("ws closed")
 	ws.closed = true
-	ws.conn.Close()
+	ws.Conn.Close()
 	close(ws.quit)
 }
 
@@ -147,27 +144,25 @@ func (ws *WsClient) pingLoop() {
 			return
 		}
 
-		now := time.Now()
-		bs := []byte(fmt.Sprintf("%d", utils.Millisec(now)))
-		if err := ws.conn.WriteControl(websocket.PingMessage, bs, now.Add(time.Second*10)); err != nil {
-			log.WithError(err).Errorln("control ping failed")
-			return
-		}
+		// now := time.Now()
+		// bs := []byte(fmt.Sprintf("%d", utils.Millisec(now)))
+		// if err := ws.conn.WriteControl(websocket.PingMessage, bs, now.Add(time.Second*10)); err != nil {
+		// 	log.WithError(err).Errorln("control ping failed")
+		// 	return
+		// }
 	}
 }
 
 func (ws *WsClient) readLoop() {
-	conn := ws.conn
+	conn := ws.Conn
 	log.Println("Start WS read loop")
 	epoch := ws.epoch
 
 	defer ws.Close()
 	for !ws.closed || epoch != atomic.LoadInt64(&ws.epoch) {
-		deadline := time.Now().Add(time.Second * 120)
-		conn.SetReadDeadline(deadline)
 		_, body, err := conn.ReadMessage()
 		if err != nil {
-			log.WithError(err).Errorf("websocket conn read timeout in 120 seconds")
+			log.WithError(err).Errorf("websocket conn read timeout")
 			ws.reconnect() // 断开时重连
 			return
 		}
@@ -192,7 +187,7 @@ func (ws *WsClient) writeLoop() {
 		case <-ws.quit:
 			return
 		case bs := <-ws.wch:
-			if err := ws.conn.WriteMessage(websocket.TextMessage, bs); err != nil {
+			if err := ws.Conn.WriteMessage(websocket.TextMessage, bs); err != nil {
 				log.WithError(err).Errorln("write failed")
 				return
 			}
