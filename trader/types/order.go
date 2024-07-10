@@ -7,20 +7,20 @@ import (
 )
 
 type Order struct {
-	Symbol        string             `json:"symbol"`
-	Type          constant.OrderType `json:"type"`
-	OrderID       string             `json:"orderId"`
-	ClientID      string             `json:"clientID"`
-	Side          constant.OrderSide `json:"side"`
-	Price         string             `json:"price"`
-	OrigQty       string             `json:"origQty"`
-	Amount        string             `json:"amount"` // 订单quote额度
-	ExecutedQty   string             `json:"executedQty"`
+	Symbol        string                `json:"symbol"`
+	Exchange      constant.ExchangeType `json:"exchangeType"`
+	Type          constant.OrderType    `json:"type"`
+	OrderID       string                `json:"orderId"`
+	ClientID      string                `json:"clientID"`
+	Side          constant.OrderSide    `json:"side"`
+	Price         string                `json:"price"`
+	OrigQty       string                `json:"origQty"`
+	Amount        string                `json:"amount"` // 订单quote额度
+	ExecutedQty   string                `json:"executedQty"`
 	ExecutedAmt   string
-	AvgPrice      string                `json:"avgPrice"`
-	Fee           string                `json:"fee"`
-	Status        constant.OrderStatus  `json:"status"` // 自定义的订单状态，统一各交易所订单状态
-	ExchangeType  constant.ExchangeType `json:"exchangeType"`
+	AvgPrice      string               `json:"avgPrice"`
+	Fee           string               `json:"fee"`
+	Status        constant.OrderStatus `json:"status"` // 自定义的订单状态，统一各交易所订单状态
 	MarketType    string
 	HedgeClientId string
 	HedgingPrice  string

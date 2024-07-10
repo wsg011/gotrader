@@ -181,15 +181,15 @@ func TestCreateBatchOrdersWs(t *testing.T) {
 		for i := 0; i < orderNum; i++ {
 			price := askPrice + 0.01*float64(i+1)
 			orderinfo := &types.Order{
-				Symbol:       symbol,
-				Side:         constant.OrderSell,
-				Type:         constant.Limit,
-				ClientID:     utils.RandomString(32),
-				Price:        utils.FormatFloat(price, 3),
-				OrigQty:      "10",
-				ExchangeType: exchange.exchangeType,
-				CreateAt:     utils.Millisec(now),
-				Status:       constant.OrderSubmit,
+				Symbol:   symbol,
+				Side:     constant.OrderSell,
+				Type:     constant.Limit,
+				ClientID: utils.RandomString(32),
+				Price:    utils.FormatFloat(price, 3),
+				OrigQty:  "10",
+				Exchange: exchange.exchangeType,
+				CreateAt: utils.Millisec(now),
+				Status:   constant.OrderSubmit,
 			}
 			orders = append(orders, orderinfo)
 			// t.Logf("create order %v", orderinfo)
@@ -198,15 +198,15 @@ func TestCreateBatchOrdersWs(t *testing.T) {
 		for i := 0; i < orderNum; i++ {
 			price := bidPrice - 0.01*float64(i+1)
 			orderinfo := &types.Order{
-				Symbol:       hedgeSymbol,
-				Side:         constant.OrderBuy,
-				Type:         constant.Limit,
-				ClientID:     utils.RandomString(32),
-				Price:        utils.FormatFloat(price, 3),
-				OrigQty:      "1",
-				ExchangeType: exchange.exchangeType,
-				CreateAt:     utils.Millisec(now),
-				Status:       constant.OrderSubmit,
+				Symbol:   hedgeSymbol,
+				Side:     constant.OrderBuy,
+				Type:     constant.Limit,
+				ClientID: utils.RandomString(32),
+				Price:    utils.FormatFloat(price, 3),
+				OrigQty:  "1",
+				Exchange: exchange.exchangeType,
+				CreateAt: utils.Millisec(now),
+				Status:   constant.OrderSubmit,
 			}
 			orders = append(orders, orderinfo)
 		}
