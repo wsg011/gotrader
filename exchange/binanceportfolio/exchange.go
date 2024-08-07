@@ -3,6 +3,7 @@ package binanceportfolio
 import (
 	"fmt"
 
+	"github.com/wsg011/gotrader/exchange/base"
 	"github.com/wsg011/gotrader/exchange/binancespot"
 	"github.com/wsg011/gotrader/exchange/binanceufutures"
 	"github.com/wsg011/gotrader/pkg/ws"
@@ -103,6 +104,9 @@ func (binance *BinancePortfolioExchange) FetchSymbols() ([]*types.SymbolInfo, er
 func (binance *BinancePortfolioExchange) FetchBalance() (*types.Assets, error) {
 	return binance.restClient.FetchBalance()
 }
+func (binance *BinancePortfolioExchange) FetchAssetBalance() (*types.Assets, error) {
+	return nil, fmt.Errorf("FetchAsseteBalance not imp")
+}
 
 func (binance *BinancePortfolioExchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 	if binance.marketType == UMExchange {
@@ -146,6 +150,10 @@ func (binance *BinancePortfolioExchange) FetchFundingRateHistory(symbol string, 
 
 func (binance *BinancePortfolioExchange) FetchPositons() ([]*types.Position, error) {
 	return binance.restClient.FetchPositons()
+}
+
+func (binance *BinancePortfolioExchange) PrivateTransfer(transfer base.TransferParam) (string, error) {
+	return "", fmt.Errorf("PrivateTransfer not imp")
 }
 
 func (binance *BinancePortfolioExchange) Subscribe(params map[string]interface{}) error {

@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	apiKey      = ""
-	secretKey   = ""
-	passphrase  = ""
+	apiKey      = "8d7583f3-ad47-4ce3-baaf-0fbc2dc92941"
+	secretKey   = "0F1B6CBB8740B6B63ECA7DAA30DDA499"
+	passphrase  = "I6Ad2qolM05Lh!"
 	symbol      = "APE_USDT_SWAP"
 	hedgeSymbol = "APE_USDT"
 	askPrice    = 0.0
@@ -77,6 +77,22 @@ func TestFetchFundingRate(t *testing.T) {
 	}
 	mean, _ := stats.Mean(fundingRates)
 	t.Logf("funding rate history mean %v", mean)
+}
+
+func TestFetchAssetBalance(t *testing.T) {
+	params := &types.ExchangeParameters{
+		AccessKey:  apiKey,
+		SecretKey:  secretKey,
+		Passphrase: passphrase,
+	}
+	exchange = NewOkxV5Swap(params)
+
+	assetBalance, err := exchange.FetchAssetBalance()
+	if err != nil {
+		t.Errorf("FetchAssetBalance error %s", err)
+	}
+	t.Logf("asset balance %+v", assetBalance)
+
 }
 
 // func TestFetchPosition(t *testing.T) {

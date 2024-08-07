@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/wsg011/gotrader/exchange/base"
 	"github.com/wsg011/gotrader/pkg/ws"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
@@ -75,9 +76,17 @@ func (binance *BinanceSpotExchange) FetchBalance() (*types.Assets, error) {
 	return binance.restClient.FetchBalance()
 }
 
+func (binance *BinanceSpotExchange) FetchAssetBalance() (*types.Assets, error) {
+	return nil, fmt.Errorf("FetchAssetBalance not imp")
+}
+
 func (binance *BinanceSpotExchange) CreateBatchOrders(orders []*types.Order) ([]*types.OrderResult, error) {
 
 	return binance.restClient.CreateBatchOrders(orders)
+}
+
+func (binance *BinanceSpotExchange) PrivateTransfer(transfer base.TransferParam) (string, error) {
+	return "", fmt.Errorf("PrivateTransfer not imp")
 }
 
 func (binance *BinanceSpotExchange) Subscribe(params map[string]interface{}) error {

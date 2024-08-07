@@ -88,6 +88,7 @@ const (
 	TradeRest                  = "/api/v5/market/trades?%s"
 	FetchBalanceUri            = "/api/v5/account/balance"
 	FetchPositionsUri          = "/api/v5/account/positions"
+	FetchAssetBalanceUri       = "/api/v5/asset/balances"
 	CreateSingleOrderUri       = "/api/v5/trade/order"
 	CreateBatchOrderUri        = "/api/v5/trade/batch-orders"
 	CancelSingleOrderUri       = "/api/v5/trade/cancel-order"
