@@ -75,6 +75,18 @@ var (
 		"isolated": "FIXED",
 		"cross":    "CROSSED",
 	}
+
+	TypeMap = map[string]string{
+		"spot":    "18",
+		"funding": "6",
+		"swap":    "18",
+		"cswap":   "18",
+	}
+
+	TransferMap = map[string]string{
+		"1": "1",
+		"2": "2",
+	}
 )
 
 const (

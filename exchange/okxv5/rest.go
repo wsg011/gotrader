@@ -209,6 +209,7 @@ func (client *RestClient) CreateBatchOrders(orders []*types.Order) ([]*types.Ord
 		log.Errorf("okx post /api/v5/trade/batch-orders err 数据解析失败:%v", err)
 		return nil, err
 	}
+
 	if len(response.Data) == 0 {
 		err := fmt.Errorf("ok post /api/v5/trade/batch-orders err: %v", response)
 		return nil, err

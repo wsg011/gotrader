@@ -5,15 +5,16 @@ import (
 	"time"
 
 	"github.com/montanaflynn/stats"
+	"github.com/wsg011/gotrader/exchange/base"
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
 )
 
 var (
-	apiKey      = "8d7583f3-ad47-4ce3-baaf-0fbc2dc92941"
-	secretKey   = "0F1B6CBB8740B6B63ECA7DAA30DDA499"
-	passphrase  = "I6Ad2qolM05Lh!"
+	apiKey      = ""
+	secretKey   = ""
+	passphrase  = ""
 	symbol      = "APE_USDT_SWAP"
 	hedgeSymbol = "APE_USDT"
 	askPrice    = 0.0
@@ -92,6 +93,22 @@ func TestFetchAssetBalance(t *testing.T) {
 		t.Errorf("FetchAssetBalance error %s", err)
 	}
 	t.Logf("asset balance %+v", assetBalance)
+
+	bethAsset, exists := assetBalance.Assets["BETH"]
+	if exists {
+		transfer := base.TransferParam{
+			FromType:     "funding",
+			ToType:       "swap",
+			Assert:       bethAsset.Coin,
+			Amount:       bethAsset.Total,
+			TransferType: "0",
+		}
+		transferId, err := exchange.PrivateTransfer(transfer)
+		if err != nil {
+			t.Errorf("PrivateTransfer err %s", err)
+		}
+		t.Logf("PrivateTransfer success, trans id %s", transferId)
+	}
 
 }
 

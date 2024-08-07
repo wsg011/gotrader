@@ -136,7 +136,7 @@ func (okx *OkxV5Exchange) CancelBatchOrders(orders []*types.Order) ([]*types.Ord
 }
 
 func (okx *OkxV5Exchange) PrivateTransfer(transfer base.TransferParam) (string, error) {
-	return "", fmt.Errorf("PrivateTransfer not imp")
+	return okx.restClient.PrivateTransfer(transfer)
 }
 
 func (okx *OkxV5Exchange) Subscribe(params map[string]interface{}) error {
