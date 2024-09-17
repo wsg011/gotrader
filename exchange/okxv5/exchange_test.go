@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/montanaflynn/stats"
+	"github.com/wsg011/gotrader/exchange/base"
 	"github.com/wsg011/gotrader/pkg/utils"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
@@ -77,6 +78,38 @@ func TestFetchFundingRate(t *testing.T) {
 	}
 	mean, _ := stats.Mean(fundingRates)
 	t.Logf("funding rate history mean %v", mean)
+}
+
+func TestFetchAssetBalance(t *testing.T) {
+	params := &types.ExchangeParameters{
+		AccessKey:  apiKey,
+		SecretKey:  secretKey,
+		Passphrase: passphrase,
+	}
+	exchange = NewOkxV5Swap(params)
+
+	assetBalance, err := exchange.FetchAssetBalance()
+	if err != nil {
+		t.Errorf("FetchAssetBalance error %s", err)
+	}
+	t.Logf("asset balance %+v", assetBalance)
+
+	bethAsset, exists := assetBalance.Assets["BETH"]
+	if exists {
+		transfer := base.TransferParam{
+			FromType:     "funding",
+			ToType:       "swap",
+			Assert:       bethAsset.Coin,
+			Amount:       bethAsset.Total,
+			TransferType: "0",
+		}
+		transferId, err := exchange.PrivateTransfer(transfer)
+		if err != nil {
+			t.Errorf("PrivateTransfer err %s", err)
+		}
+		t.Logf("PrivateTransfer success, trans id %s", transferId)
+	}
+
 }
 
 // func TestFetchPosition(t *testing.T) {

@@ -75,6 +75,18 @@ var (
 		"isolated": "FIXED",
 		"cross":    "CROSSED",
 	}
+
+	TypeMap = map[string]string{
+		"spot":    "18",
+		"funding": "6",
+		"swap":    "18",
+		"cswap":   "18",
+	}
+
+	TransferMap = map[string]string{
+		"1": "1",
+		"2": "2",
+	}
 )
 
 const (
@@ -88,6 +100,7 @@ const (
 	TradeRest                  = "/api/v5/market/trades?%s"
 	FetchBalanceUri            = "/api/v5/account/balance"
 	FetchPositionsUri          = "/api/v5/account/positions"
+	FetchAssetBalanceUri       = "/api/v5/asset/balances"
 	CreateSingleOrderUri       = "/api/v5/trade/order"
 	CreateBatchOrderUri        = "/api/v5/trade/batch-orders"
 	CancelSingleOrderUri       = "/api/v5/trade/cancel-order"

@@ -1,6 +1,7 @@
 package trader
 
 import (
+	"github.com/wsg011/gotrader/exchange/base"
 	"github.com/wsg011/gotrader/trader/constant"
 	"github.com/wsg011/gotrader/trader/types"
 )
@@ -18,9 +19,11 @@ type Exchange interface {
 
 	// rest Private
 	FetchBalance() (*types.Assets, error)
+	FetchAssetBalance() (*types.Assets, error)
 	FetchPositons() ([]*types.Position, error)
 	CreateBatchOrders([]*types.Order) ([]*types.OrderResult, error)
 	CancelBatchOrders(orders []*types.Order) ([]*types.OrderResult, error)
+	PrivateTransfer(transfer base.TransferParam) (string, error)
 
 	// ws
 	Subscribe(params map[string]interface{}) (err error)
