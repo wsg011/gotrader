@@ -8,6 +8,7 @@ const (
 )
 
 type WsImp interface {
+	Subscribe(symbol string, topic string) map[string]interface{}
 	OnConnected(*WsClient, ConnectType)
 	Handle(*WsClient, []byte)
 	Ping(*WsClient)
