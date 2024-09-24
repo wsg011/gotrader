@@ -1,6 +1,7 @@
 package binanceportfolio
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/wsg011/gotrader/trader/constant"
@@ -74,4 +75,12 @@ const (
 
 func Symbol2Binance(symbol string) string {
 	return strings.Replace(symbol, "_", "", -1)
+}
+
+func Symbol2BinanceWsInstId(symbol string) string {
+	tmp := strings.Split(symbol, "_")
+	if len(tmp) == 2 {
+		return fmt.Sprintf("%s%s", strings.ToLower(tmp[0]), strings.ToLower(tmp[1]))
+	}
+	panic("bad symbol:" + symbol)
 }

@@ -54,6 +54,19 @@ func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	// ok.Login(cli)
 }
 
+func (binance *BinanceImp) Subscribe(symbol string, topic string) map[string]interface{} {
+	params := map[string]interface{}{
+		"op": "subscribe",
+		"args": []map[string]string{
+			{
+				"channel": "bbo-tbt",
+				"instId":  Symbol2BinanceWsInstId(symbol),
+			},
+		},
+	}
+	return params
+}
+
 func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {
 	dict, err := utils.ByteToMap(bs)
 	if err != nil {

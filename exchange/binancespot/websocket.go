@@ -44,6 +44,7 @@ func (binance *BinanceImp) Ping(cli *ws.WsClient) {
 
 	log.Infof("ping %s", deadline)
 }
+
 func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	if !binance.isPrivate {
 		log.Info("binance spot public ws connected")
@@ -52,6 +53,19 @@ func (binance *BinanceImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	log.Info("binance spot private ws connected")
 	// ok.Login(cli)
 	// keepAlive(cli.Conn, 20*time.Second)
+}
+
+func (binance *BinanceImp) Subscribe(symbol string, topic string) map[string]interface{} {
+	params := map[string]interface{}{
+		"op": "subscribe",
+		"args": []map[string]string{
+			{
+				"channel": "bbo-tbt",
+				"instId":  Symbol2BinanceWsInstId(symbol),
+			},
+		},
+	}
+	return params
 }
 
 func (binance *BinanceImp) Handle(cli *ws.WsClient, bs []byte) {

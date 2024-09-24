@@ -57,6 +57,7 @@ func (ok *OkImp) Ping(cli *ws.WsClient) {
 	// log.Infof("ping")
 	cli.WriteBytes([]byte("ping"))
 }
+
 func (ok *OkImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	if !ok.isPrivate {
 		log.Info("ok public ws connected")
@@ -64,6 +65,19 @@ func (ok *OkImp) OnConnected(cli *ws.WsClient, typ ws.ConnectType) {
 	}
 	log.Info("ok private ws connected")
 	ok.Login(cli)
+}
+
+func (ok *OkImp) Subscribe(symbol string, topic string) map[string]interface{} {
+	params := map[string]interface{}{
+		"op": "subscribe",
+		"args": []map[string]string{
+			{
+				"channel": "bbo-tbt",
+				"instId":  Symbol2OkInstId(symbol),
+			},
+		},
+	}
+	return params
 }
 
 func (ok *OkImp) Handle(cli *ws.WsClient, bs []byte) {
